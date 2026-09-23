@@ -15,6 +15,7 @@ import { advanceMunkalap, acceptMunkalap } from "@/lib/munkalapActions";
 import CommentSection from "@/components/CommentSection";
 import MunkalapEditForm from "@/components/MunkalapEditForm";
 import MunkalapFlow from "@/components/MunkalapFlow";
+import MunkalapStats from "@/components/MunkalapStats";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -299,6 +300,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         </div>
       )}
 
+      <MunkalapStats munkalap={m} />
       <MunkalapFlow munkalap={m} />
 
       {(m.terv_hatarido || m.gyartasi_datum || m.kiszallitasi_datum) && (
