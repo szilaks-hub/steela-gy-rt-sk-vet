@@ -57,3 +57,34 @@ export const deadlineStatus = (d) => {
   if (diff <= 3) return { label: `${diff} nap`, color: "#FF9500", diff };
   return { label: `${diff} nap`, color: "#34C759", diff };
 };
+
+export const stageEntryAt = (munkalap, stage) => {
+  const history = Array.isArray(munkalap.stage_history) ? munkalap.stage_history : [];
+  const h = history.find((e) => e.stage === stage);
+  if (h) return h.at;
+  if (stage === "terv_feldolgozas") return munkalap.created_date;
+  return null;
+};
+
+export const elapsedMs = (munkalap) => {
+  const created = munkalap.created_date ? new Date(munkalap.created_date).getTime() : null;
+  if (created == null) return null;
+  const lastStage = STAGES[STAGES.length - 1].value;
+  const lastAt = stageEntryAt(munkalap, lastStage);
+  const end = lastAt ? new Date(lastAt).getTime() : Date.now();
+  return end - created;
+};
+
+export const formatDays = (ms) => {
+  if (ms == null || ms < 0 || !isFinite(ms)) return "—";
+  const days = ms / 86400000;
+  if (days >= 10) return `${Math.round(days)} nap`;
+  return `${days.toFixed(1).replace(".", ",")} nap`;
+};
+
+export const formatDateTime = (iso) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleString("hu-HU", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+};

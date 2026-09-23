@@ -1,6 +1,16 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { operationLabel, operationColor, stageMeta, NEXT_STATUS, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
+import {
+  operationLabel,
+  operationColor,
+  stageMeta,
+  NEXT_STATUS,
+  formatDate,
+  deadlineStatus,
+  elapsedMs,
+  formatDays,
+  formatDateTime,
+} from "@/lib/munkalapConfig";
 import { advanceMunkalap, acceptMunkalap } from "@/lib/munkalapActions";
 import CommentSection from "@/components/CommentSection";
 import MunkalapEditForm from "@/components/MunkalapEditForm";
@@ -20,13 +30,36 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2, Calendar, AlertTriangle, Pencil, Archive, ArchiveRestore, Trash2, Flag } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  Paperclip,
+  FileText,
+  ExternalLink,
+  Check,
+  Loader2,
+  Calendar,
+  AlertTriangle,
+  Pencil,
+  Archive,
+  ArchiveRestore,
+  Trash2,
+  Flag,
+  Clock,
+  Scale,
+  User,
+  CalendarClock,
+  Bell,
+  X,
+  SearchCheck,
+} from "lucide-react";
 
 export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [checking, setChecking] = useState(false);
   const m = munkalap;
   const stage = stageMeta(m.status);
   const StageIcon = stage.icon;
@@ -35,6 +68,10 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const canAdvance = next && !(m.status === "elfogadasra_var" && !m.accepted) && !m.archived;
   const kg = Number(m.quantity_kg);
   const dl = deadlineStatus(m.terv_hatarido);
+  const totalMs = elapsedMs(m);
+  const history = Array.isArray(m.stage_history) ? m.stage_history : [];
+  const changes = [...history].reverse();
+  const lastChange = changes[0];
 
   const accept = async () => {
     setBusy(true);
@@ -92,19 +129,12 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     }
   };
 
-  const Info = ({ label, value, color }) => (
-    <div className="rounded-xl bg-[#F5F5F7] p-3">
-      <p className="text-[0.75rem] text-[#86868B]">{label}</p>
-      <p className="text-[0.875rem] font-medium mt-0.5" style={color ? { color } : { color: "#1D1D1F" }}>{value || "—"}</p>
-    </div>
-  );
-
   const headerActions = (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5">
       <button
         onClick={toggleFlag}
         disabled={busy}
-        className={`w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-50 ${
+        className={`w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-50 transition-colors ${
           m.flagged ? "text-red-500 bg-red-500/10" : "text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F]"
         }`}
         title={m.flagged ? "Jelölés eltávolítása" : "Kiemeltre jelölés"}
@@ -114,7 +144,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
       <button
         onClick={() => setEditing(true)}
         disabled={busy}
-        className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center disabled:opacity-50"
+        className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center disabled:opacity-50 transition-colors"
         title="Szerkesztés"
       >
         <Pencil className="w-4 h-4" />
@@ -122,7 +152,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
       <button
         onClick={archive}
         disabled={busy}
-        className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center disabled:opacity-50"
+        className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center disabled:opacity-50 transition-colors"
         title={m.archived ? "Visszaállítás" : "Archiválás"}
       >
         {m.archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
@@ -131,7 +161,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         <AlertDialogTrigger asChild>
           <button
             disabled={busy}
-            className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center disabled:opacity-50"
+            className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center disabled:opacity-50 transition-colors"
             title="Törlés"
           >
             <Trash2 className="w-4 h-4" />
@@ -152,96 +182,175 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {isMobile && (
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center transition-colors"
+          title="Bezárás"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 
+  const metrics = [
+    { Icon: Clock, label: "Gyártási idő", value: formatDays(totalMs), accent: "#FF9500" },
+    { Icon: Scale, label: "Mennyiség", value: kg > 0 ? `${kg.toLocaleString("hu-HU")} kg` : "—", accent: opColor },
+    { Icon: User, label: "Felelős", value: m.felelos || "—", accent: "#5B9BD5" },
+    {
+      Icon: CalendarClock,
+      label: "Határidő",
+      value: m.terv_hatarido ? formatDate(m.terv_hatarido) : "—",
+      hint: dl?.label,
+      hintColor: dl?.color,
+      accent: dl?.color || "#86868B",
+    },
+  ];
+
+  const SectionLabel = ({ icon: Icon, children }) => (
+    <p className="text-[0.6875rem] uppercase tracking-wider text-[#86868B] font-semibold mb-2.5 inline-flex items-center gap-1.5">
+      <Icon className="w-3.5 h-3.5" />
+      {children}
+    </p>
+  );
+
   const body = (
-    <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-      {m.flagged && (
-        <div className="rounded-xl bg-red-500/10 text-red-500 px-3 py-2 text-[0.8125rem] font-semibold inline-flex items-center gap-1.5">
-          <Flag className="w-3.5 h-3.5" /> Kiemelt munkalap
-        </div>
-      )}
-      {m.archived && (
-        <div className="rounded-xl bg-[#86868B]/10 text-[#86868B] px-3 py-2 text-[0.8125rem] font-medium inline-flex items-center gap-1.5">
-          <Archive className="w-3.5 h-3.5" /> Archivált munkalap
+    <div className="flex-1 overflow-y-auto bg-white px-5 py-4 space-y-5">
+      {/* Metric chips */}
+      <div className="grid grid-cols-2 gap-2.5">
+        {metrics.map((mt) => (
+          <div key={mt.label} className="rounded-2xl border border-[#EDEDF0] bg-[#FBFBFD] p-3">
+            <span
+              className="w-7 h-7 rounded-lg flex items-center justify-center mb-2"
+              style={{ backgroundColor: mt.accent + "1A", color: mt.accent }}
+            >
+              <mt.Icon className="w-3.5 h-3.5" />
+            </span>
+            <p className="text-[0.6875rem] text-[#86868B]">{mt.label}</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <p className="text-[0.875rem] font-semibold text-[#1D1D1F] truncate">{mt.value}</p>
+              {mt.hint && (
+                <span
+                  className="text-[0.625rem] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
+                  style={{ backgroundColor: mt.hintColor + "1A", color: mt.hintColor }}
+                >
+                  {mt.hint}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Checking button */}
+      <button
+        onClick={() => setChecking((v) => !v)}
+        className={`w-full h-11 rounded-2xl text-[0.8125rem] font-medium inline-flex items-center justify-center gap-2 transition-all ${
+          checking
+            ? "bg-[#FF9500] text-white border border-[#FF9500]"
+            : "border border-[#E5E5EA] text-[#1D1D1F] hover:border-[#FF9500]/50 hover:bg-[#FFF7ED]"
+        }`}
+      >
+        <SearchCheck className="w-4 h-4" style={{ color: checking ? "#fff" : "#FF9500" }} />
+        {checking ? "Checking elrejtése" : "Checking – hogy áll a gyártás?"}
+      </button>
+
+      {checking && (
+        <div className="rounded-2xl border border-[#FF9500]/30 bg-gradient-to-br from-[#FFF7ED] to-white p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[0.8125rem] font-semibold text-[#1D1D1F] inline-flex items-center gap-1.5">
+              <SearchCheck className="w-4 h-4 text-[#FF9500]" /> Státusz checking
+            </span>
+            <button onClick={() => setChecking(false)} className="text-[#86868B] hover:text-[#1D1D1F]">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="space-y-2 text-[0.8125rem]">
+            <div className="flex items-center justify-between">
+              <span className="text-[#86868B]">Jelenlegi fázis</span>
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.75rem] font-semibold"
+                style={{ backgroundColor: stage.color + "1A", color: stage.color }}
+              >
+                <StageIcon className="w-3.5 h-3.5" />
+                {stage.label}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#86868B]">Gyártási idő</span>
+              <span className="font-semibold text-[#1D1D1F]">{formatDays(totalMs)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#86868B]">Előrehaladás</span>
+              <span className="font-semibold text-[#1D1D1F]">{m.progress || 0}%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#86868B]">Határidő</span>
+              <span className="font-semibold text-[#1D1D1F]">
+                {m.terv_hatarido ? formatDate(m.terv_hatarido) : "—"}
+                {dl && (
+                  <span className="ml-1.5 text-[0.6875rem]" style={{ color: dl.color }}>
+                    ({dl.label})
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[#86868B]">Felelős</span>
+              <span className="font-semibold text-[#1D1D1F]">{m.felelos || "—"}</span>
+            </div>
+            {lastChange && (
+              <div className="flex items-center justify-between">
+                <span className="text-[#86868B]">Utolsó változás</span>
+                <span className="font-semibold text-[#1D1D1F]">{formatDateTime(lastChange.at) || "—"}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       <MunkalapFlow munkalap={m} />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.75rem] font-semibold"
-          style={{ backgroundColor: stage.color + "1A", color: stage.color }}
-        >
-          <StageIcon className="w-3.5 h-3.5" />
-          {stage.label}
-        </span>
-        <span
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.75rem] font-semibold"
-          style={{ backgroundColor: opColor + "1A", color: opColor }}
-        >
-          {operationLabel(m.operation)}
-        </span>
-        {m.status === "elfogadasra_var" && (
-          <span
-            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[0.75rem] font-semibold ${
-              m.accepted ? "bg-[#34C759]/15 text-[#34C759]" : "bg-[#FFCC00]/25 text-[#9a7b00]"
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            {m.accepted ? "Elfogadva" : "Elfogadásra vár"}
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Info label="Vevő" value={m.customer_name} />
-        <Info label="Művelet" value={operationLabel(m.operation)} color={opColor} />
-        <Info label="Mennyiség" value={kg > 0 ? `${kg.toLocaleString("hu-HU")} kg` : "—"} />
-        <Info label="Felelős / Terv feldolgozó" value={m.felelos} />
-      </div>
-
       {(m.terv_hatarido || m.gyartasi_datum || m.kiszallitasi_datum) && (
-        <div className="rounded-xl border border-[#E5E5EA] p-3.5 space-y-2.5">
-          <p className="text-[0.75rem] text-[#86868B] flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" /> Dátumok
-          </p>
-          {m.terv_hatarido && (
-            <div className="flex items-center justify-between">
-              <span className="text-[0.8125rem] text-[#1D1D1F]">Terv határidő (vevő)</span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.terv_hatarido)}</span>
-                {dl && (
-                  <span
-                    className="text-[0.6875rem] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1"
-                    style={{ backgroundColor: dl.color + "1A", color: dl.color }}
-                  >
-                    {dl.diff < 0 && <AlertTriangle className="w-3 h-3" />}
-                    {dl.label}
-                  </span>
-                )}
-              </span>
-            </div>
-          )}
-          {m.gyartasi_datum && (
-            <div className="flex items-center justify-between">
-              <span className="text-[0.8125rem] text-[#1D1D1F]">Gyártási nap</span>
-              <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.gyartasi_datum)}</span>
-            </div>
-          )}
-          {m.kiszallitasi_datum && (
-            <div className="flex items-center justify-between">
-              <span className="text-[0.8125rem] text-[#1D1D1F]">Kiszállítás</span>
-              <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.kiszallitasi_datum)}</span>
-            </div>
-          )}
+        <div>
+          <SectionLabel icon={Calendar}>Dátumok</SectionLabel>
+          <div className="rounded-2xl border border-[#EDEDF0] divide-y divide-[#F2F2F5] overflow-hidden">
+            {m.terv_hatarido && (
+              <div className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[0.8125rem] text-[#1D1D1F]">Terv határidő (vevő)</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.terv_hatarido)}</span>
+                  {dl && (
+                    <span
+                      className="text-[0.6875rem] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                      style={{ backgroundColor: dl.color + "1A", color: dl.color }}
+                    >
+                      {dl.diff < 0 && <AlertTriangle className="w-3 h-3" />}
+                      {dl.label}
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
+            {m.gyartasi_datum && (
+              <div className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[0.8125rem] text-[#1D1D1F]">Gyártási nap</span>
+                <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.gyartasi_datum)}</span>
+              </div>
+            )}
+            {m.kiszallitasi_datum && (
+              <div className="flex items-center justify-between px-3.5 py-2.5">
+                <span className="text-[0.8125rem] text-[#1D1D1F]">Kiszállítás</span>
+                <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.kiszallitasi_datum)}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {m.felelos && m.status === "terv_feldolgozas" && !m.archived && dl && dl.diff <= 3 && (
-        <div className="rounded-xl p-3 flex items-start gap-2" style={{ backgroundColor: dl.color + "14" }}>
+        <div className="rounded-2xl p-3 flex items-start gap-2" style={{ backgroundColor: dl.color + "14" }}>
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: dl.color }} />
           <p className="text-[0.8125rem]" style={{ color: dl.color }}>
             {dl.diff < 0
@@ -254,9 +363,9 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
       <div>
         <div className="flex justify-between text-[0.75rem] text-[#86868B] mb-1.5">
           <span>Előrehaladás</span>
-          <span>{m.progress || 0}%</span>
+          <span className="font-semibold text-[#1D1D1F]">{m.progress || 0}%</span>
         </div>
-        <div className="h-2 w-full rounded-full bg-[#E5E5EA] overflow-hidden">
+        <div className="h-2 w-full rounded-full bg-[#EDEDF0] overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-[#FF9500] to-[#FFCC00] transition-all"
             style={{ width: `${m.progress || 0}%` }}
@@ -266,16 +375,15 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
 
       {m.description && (
         <div>
-          <p className="text-[0.75rem] text-[#86868B] mb-1">Leírás</p>
-          <p className="text-[0.875rem] text-[#1D1D1F] leading-relaxed whitespace-pre-wrap">{m.description}</p>
+          <SectionLabel icon={FileText}>Leírás</SectionLabel>
+          <p className="text-[0.875rem] text-[#1D1D1F] leading-relaxed whitespace-pre-wrap rounded-2xl bg-[#FBFBFD] border border-[#EDEDF0] p-3.5">
+            {m.description}
+          </p>
         </div>
       )}
 
       <div>
-        <p className="text-[0.75rem] text-[#86868B] mb-2 flex items-center gap-1.5">
-          <Paperclip className="w-3.5 h-3.5" />
-          Dokumentumok ({(m.documents || []).length})
-        </p>
+        <SectionLabel icon={Paperclip}>Dokumentumok ({(m.documents || []).length})</SectionLabel>
         <div className="space-y-2">
           {(m.documents || []).length === 0 && (
             <p className="text-[0.8125rem] text-[#86868B] italic">Nincs csatolt dokumentum</p>
@@ -286,9 +394,9 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2.5 rounded-xl border border-[#E5E5EA] p-2.5 hover:border-[#FF9500]/40 transition-colors group"
+              className="flex items-center gap-2.5 rounded-2xl border border-[#EDEDF0] p-2.5 hover:border-[#FF9500]/40 hover:bg-[#FFF7ED] transition-colors group"
             >
-              <span className="w-9 h-9 rounded-lg bg-[#FF9500]/10 text-[#FF9500] flex items-center justify-center shrink-0">
+              <span className="w-9 h-9 rounded-xl bg-[#FF9500]/10 text-[#FF9500] flex items-center justify-center shrink-0">
                 <FileText className="w-4 h-4" />
               </span>
               <span className="flex-1 text-[0.8125rem] text-[#1D1D1F] truncate">Dokumentum {i + 1}</span>
@@ -298,15 +406,46 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         </div>
       </div>
 
-      <div className="pt-2 border-t border-[#E5E5EA]">
-        <p className="text-[0.75rem] text-[#86868B] mb-3 mt-2">Megjegyzések</p>
+      <div>
+        <SectionLabel icon={Bell}>Változások</SectionLabel>
+        {changes.length === 0 ? (
+          <p className="text-[0.8125rem] text-[#86868B] italic">Még nincs változás</p>
+        ) : (
+          <div className="space-y-2.5">
+            {changes.slice(0, 8).map((c, i) => {
+              const sm = stageMeta(c.stage);
+              const Icon = sm.icon;
+              return (
+                <div key={i} className="flex items-start gap-2.5">
+                  <span
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    style={{ backgroundColor: sm.color + "1A", color: sm.color }}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </span>
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <p className="text-[0.8125rem] text-[#1D1D1F]">
+                      <span className="font-semibold">{sm.label}</span>
+                      {c.note ? ` — ${c.note}` : ""}
+                    </p>
+                    <p className="text-[0.6875rem] text-[#86868B] mt-0.5">{formatDateTime(c.at) || "—"}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="pt-1">
+        <SectionLabel icon={CheckCircle2}>Megjegyzések</SectionLabel>
         <CommentSection munkalapId={m.id} />
       </div>
     </div>
   );
 
   const footer = (
-    <div className="border-t border-[#E5E5EA] px-5 py-3.5 bg-white space-y-2">
+    <div className="border-t border-[#EDEDF0] px-5 py-3.5 bg-white space-y-2">
       {m.archived ? (
         <button
           onClick={archive}
@@ -360,10 +499,55 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     </div>
   );
 
-  const headerEl = (TitleComp) => (
-    <div className="flex items-center justify-between pr-2">
-      <TitleComp className="text-[1rem] font-semibold text-[#1D1D1F] font-mono">{m.code}</TitleComp>
-      {headerActions}
+  const hero = (TitleComp) => (
+    <div>
+      <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${opColor}, ${stage.color})` }} />
+      <div className="px-5 pt-4 pb-3.5">
+        <div className="flex items-start justify-between gap-2 sm:pr-7">
+          <div className="min-w-0">
+            <TitleComp className="text-[1rem] font-semibold text-[#1D1D1F] font-mono leading-tight block">
+              {m.code}
+            </TitleComp>
+            <p className="text-[0.875rem] text-[#1D1D1F] font-medium truncate mt-1">{m.customer_name}</p>
+          </div>
+          {headerActions}
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 mt-3">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.75rem] font-semibold"
+            style={{ backgroundColor: stage.color + "1A", color: stage.color }}
+          >
+            <StageIcon className="w-3.5 h-3.5" />
+            {stage.label}
+          </span>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.75rem] font-semibold"
+            style={{ backgroundColor: opColor + "1A", color: opColor }}
+          >
+            {operationLabel(m.operation)}
+          </span>
+          {m.status === "elfogadasra_var" && (
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.75rem] font-semibold ${
+                m.accepted ? "bg-[#34C759]/15 text-[#34C759]" : "bg-[#FFCC00]/25 text-[#9a7b00]"
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {m.accepted ? "Elfogadva" : "Elfogadásra vár"}
+            </span>
+          )}
+          {m.flagged && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.75rem] font-semibold bg-red-500/10 text-red-500">
+              <Flag className="w-3.5 h-3.5" /> Kiemelt
+            </span>
+          )}
+          {m.archived && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.75rem] font-semibold bg-[#86868B]/10 text-[#86868B]">
+              <Archive className="w-3.5 h-3.5" /> Archivált
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 
@@ -371,10 +555,8 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     return (
       <>
         <Drawer open={true} onOpenChange={(o) => !o && onClose()}>
-          <DrawerContent className="h-[90vh] flex flex-col gap-0">
-            <DrawerHeader className="px-5 pt-3 pb-2 border-b border-[#E5E5EA]">
-              {headerEl(DrawerTitle)}
-            </DrawerHeader>
+          <DrawerContent className="h-[90vh] flex flex-col gap-0 bg-white">
+            <DrawerHeader className="p-0">{hero(DrawerTitle)}</DrawerHeader>
             {content}
           </DrawerContent>
         </Drawer>
@@ -395,10 +577,8 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   return (
     <>
       <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
-        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0">
-          <SheetHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA]">
-            {headerEl(SheetTitle)}
-          </SheetHeader>
+        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0 bg-white">
+          <SheetHeader className="p-0">{hero(SheetTitle)}</SheetHeader>
           {content}
         </SheetContent>
       </Sheet>

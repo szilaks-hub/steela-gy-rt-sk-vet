@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { STAGES, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
+import { STAGES, formatDate, deadlineStatus, formatDays } from "@/lib/munkalapConfig";
 import { CheckCircle2, Clock, Circle } from "lucide-react";
 
 const formatDuration = (ms) => {
@@ -62,8 +62,8 @@ export default function MunkalapFlow({ munkalap }) {
         )}
         {totalMs != null && (
           <div className="inline-flex items-center gap-1.5 text-[0.75rem] ml-auto">
-            <span className="text-[#86868B]">Eddig:</span>
-            <span className="font-semibold text-[#1D1D1F]">{formatDuration(totalMs) || "—"}</span>
+            <span className="text-[#86868B]">Gyártási idő:</span>
+            <span className="font-semibold text-[#1D1D1F]">{formatDays(totalMs)}</span>
           </div>
         )}
       </div>
