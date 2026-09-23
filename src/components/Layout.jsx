@@ -1,31 +1,74 @@
 import React from "react";
-import { Outlet, NavLink } from "react-router-dom";
-import { Factory, LayoutDashboard, BarChart3, Calendar } from "lucide-react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Factory, LayoutDashboard, BarChart3, Calendar, Users } from "lucide-react";
+import { OPERATIONS } from "@/lib/munkalapConfig";
 
 const navClass = ({ isActive }) =>
-  `w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F]"
+  `flex items-center gap-2.5 h-9 px-3 rounded-lg text-[0.8125rem] font-medium transition-colors ${
+    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5"
+  }`;
+
+const opClass = (active) =>
+  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] transition-colors ${
+    active ? "bg-[#1D1D1F] text-white" : "text-[#1D1D1F] hover:bg-black/5"
   }`;
 
 export default function Layout() {
+  const navigate = useNavigate();
+  const currentOp = new URLSearchParams(window.location.search).get("operation");
+
   return (
     <div className="flex h-screen w-full bg-[#F5F5F7]">
-      <aside className="hidden md:flex flex-col items-center w-16 shrink-0 border-r border-[#E5E5EA] bg-white/60 backdrop-blur-xl py-5">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF9500] to-[#FFCC00] flex items-center justify-center text-white shadow-sm mb-6">
-          <Factory className="w-5 h-5" />
+      <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-[#E5E5EA] bg-white/60 backdrop-blur-xl py-4 px-3">
+        <div className="flex items-center gap-2.5 px-2 mb-5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF9500] to-[#FFCC00] flex items-center justify-center text-white shadow-sm shrink-0">
+            <Factory className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[0.875rem] font-semibold text-[#1D1D1F] leading-tight truncate">FlowWork</p>
+            <p className="text-[0.6875rem] text-[#86868B] leading-tight">Gyártáskövető</p>
+          </div>
         </div>
-        <nav className="flex flex-col gap-2">
-          <NavLink to="/" end className={navClass} title="Csővezeték">
-            <LayoutDashboard className="w-5 h-5" />
+
+        <nav className="flex flex-col gap-1">
+          <NavLink to="/" end className={navClass}>
+            <LayoutDashboard className="w-4 h-4 shrink-0" /> Csővezeték
           </NavLink>
-          <NavLink to="/naptar" className={navClass} title="Naptár">
-            <Calendar className="w-5 h-5" />
+          <NavLink to="/naptar" className={navClass}>
+            <Calendar className="w-4 h-4 shrink-0" /> Naptár
           </NavLink>
-          <NavLink to="/dashboard" className={navClass} title="Áttekintés">
-            <BarChart3 className="w-5 h-5" />
+          <NavLink to="/dashboard" className={navClass}>
+            <BarChart3 className="w-4 h-4 shrink-0" /> Áttekintés
+          </NavLink>
+          <NavLink to="/munkasok" className={navClass}>
+            <Users className="w-4 h-4 shrink-0" /> Munkások
           </NavLink>
         </nav>
+
+        <p className="text-[0.625rem] uppercase tracking-wider text-[#86868B] font-semibold mt-5 mb-1.5 px-2.5">
+          Munkafolyamatok
+        </p>
+        <div className="flex flex-col gap-0.5">
+          <button
+            onClick={() => navigate("/")}
+            className={opClass(!currentOp)}
+          >
+            <span className="w-2 h-2 rounded-full bg-[#86868B] shrink-0" />
+            Összes
+          </button>
+          {OPERATIONS.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => navigate(`/?operation=${o.value}`)}
+              className={opClass(currentOp === o.value)}
+            >
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: o.color }} />
+              {o.label}
+            </button>
+          ))}
+        </div>
       </aside>
+
       <main className="flex-1 min-w-0 flex flex-col">
         <Outlet />
       </main>

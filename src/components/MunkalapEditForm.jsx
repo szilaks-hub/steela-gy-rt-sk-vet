@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { OPERATIONS } from "@/lib/munkalapConfig";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 
 export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
   const isMobile = useIsMobile();
@@ -23,6 +23,12 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
   const [description, setDescription] = useState(m.description || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [munkasok, setMunkasok] = useState(Array.isArray(m.munkasok) ? m.munkasok : []);
+  const [munkasList, setMunkasList] = useState([]);
+
+  useEffect(() => {
+    base44.entities.Munkas.list("-created_date", 500).then(setMunkasList).catch(() => {});
+  }, []);
 
   const save = async () => {
     if (!customer.trim()) {
@@ -41,6 +47,7 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
         gyartasi_datum: gyartasiDatum || null,
         kiszallitasi_datum: kiszallitasiDatum || null,
         description: description.trim(),
+        munkasok,
       });
       onSaved?.(updated);
     } catch (e) {
@@ -129,6 +136,41 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
           rows={3}
           className="rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
         />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Munkások ráosztása</Label>
+        <div className="rounded-xl border border-[#E5E5EA] divide-y divide-[#F2F2F5] overflow-hidden max-h-48 overflow-y-auto">
+          {munkasList.length === 0 && (
+            <p className="text-[0.8125rem] text-[#86868B] px-3 py-2.5">Nincs munkás. Adj hozzá a Munkások oldalon.</p>
+          )}
+          {munkasList.map((mk) => {
+            const checked = munkasok.includes(mk.id);
+            return (
+              <button
+                key={mk.id}
+                type="button"
+                onClick={() =>
+                  setMunkasok((prev) =>
+                    checked ? prev.filter((id) => id !== mk.id) : [...prev, mk.id]
+                  )
+                }
+                className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-[#F5F5F7] text-left"
+              >
+                <span
+                  className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+                    checked ? "bg-[#FF9500] border-[#FF9500] text-white" : "border-[#E5E5EA]"
+                  }`}
+                >
+                  {checked && <Check className="w-3.5 h-3.5" />}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="text-[0.8125rem] text-[#1D1D1F] block truncate">{mk.name}</span>
+                  {mk.role && <span className="text-[0.6875rem] text-[#86868B] block truncate">{mk.role}</span>}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
       {error && <p className="text-[0.8125rem] text-red-500">{error}</p>}
     </div>

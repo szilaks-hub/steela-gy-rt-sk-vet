@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import {
   operationLabel,
@@ -16,6 +16,8 @@ import CommentSection from "@/components/CommentSection";
 import MunkalapEditForm from "@/components/MunkalapEditForm";
 import MunkalapFlow from "@/components/MunkalapFlow";
 import MunkalapStats from "@/components/MunkalapStats";
+import MunkalapMunkasok from "@/components/MunkalapMunkasok";
+import MunkalapDocuments from "@/components/MunkalapDocuments";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,9 +33,7 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   CheckCircle2,
   ChevronRight,
-  Paperclip,
   FileText,
-  ExternalLink,
   Check,
   Loader2,
   Calendar,
@@ -58,6 +58,10 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [munkasList, setMunkasList] = useState([]);
+  useEffect(() => {
+    base44.entities.Munkas.list("-created_date", 500).then(setMunkasList).catch(() => {});
+  }, []);
   const m = munkalap;
   const stage = stageMeta(m.status);
   const StageIcon = stage.icon;
@@ -233,6 +237,8 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         ))}
       </div>
 
+      <MunkalapMunkasok munkalap={m} munkasList={munkasList} onUpdated={onUpdated} />
+
       {/* Checking button */}
       <button
         onClick={() => setChecking((v) => !v)}
@@ -373,29 +379,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         </div>
       )}
 
-      <div>
-        <SectionLabel icon={Paperclip}>Dokumentumok ({(m.documents || []).length})</SectionLabel>
-        <div className="space-y-2">
-          {(m.documents || []).length === 0 && (
-            <p className="text-[0.8125rem] text-[#86868B] italic">Nincs csatolt dokumentum</p>
-          )}
-          {(m.documents || []).map((url, i) => (
-            <a
-              key={i}
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2.5 rounded-2xl border border-[#EDEDF0] p-2.5 hover:border-[#FF9500]/40 hover:bg-[#FFF7ED] transition-colors group"
-            >
-              <span className="w-9 h-9 rounded-xl bg-[#FF9500]/10 text-[#FF9500] flex items-center justify-center shrink-0">
-                <FileText className="w-4 h-4" />
-              </span>
-              <span className="flex-1 text-[0.8125rem] text-[#1D1D1F] truncate">Dokumentum {i + 1}</span>
-              <ExternalLink className="w-4 h-4 text-[#86868B] group-hover:text-[#FF9500] shrink-0" />
-            </a>
-          ))}
-        </div>
-      </div>
+      <MunkalapDocuments munkalap={m} onUpdated={onUpdated} />
 
       <div>
         <SectionLabel icon={Bell}>Változások</SectionLabel>

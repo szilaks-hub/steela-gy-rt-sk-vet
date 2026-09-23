@@ -6,6 +6,7 @@ import MunkalapCard from "@/components/MunkalapCard";
 import MunkalapForm from "@/components/MunkalapForm";
 import MunkalapDetail from "@/components/MunkalapDetail";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Factory, Archive } from "lucide-react";
@@ -25,6 +26,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [opFilter, setOpFilter] = useState("all");
+  const [searchParams] = useSearchParams();
+  const opParam = searchParams.get("operation");
+  useEffect(() => {
+    setOpFilter(opParam || "all");
+  }, [opParam]);
   const [activeStage, setActiveStage] = useState(STAGES[0].value);
   const [stageTab, setStageTab] = useState("osszes");
   const [selected, setSelected] = useState(null);

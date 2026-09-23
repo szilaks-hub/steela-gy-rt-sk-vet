@@ -58,6 +58,13 @@
       "title": "Archiv\u00e1lt",
       "default": false
     },
+    "munkasok": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "R\u00e1osztott munk\u00e1sok (ID)"
+    },
     "documents": {
       "type": "array",
       "items": {

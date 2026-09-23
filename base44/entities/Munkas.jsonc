@@ -1,0 +1,32 @@
+{
+  "name": "Munkas",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "N\u00e9v"
+    },
+    "role": {
+      "type": "string",
+      "title": "Beoszt\u00e1s / Szakter\u00fclet"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "elerheto",
+        "foglalt",
+        "szabadsagon",
+        "inaktiv"
+      ],
+      "title": "St\u00e1tusz",
+      "default": "elerheto"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Telefon"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
