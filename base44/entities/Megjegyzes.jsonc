@@ -1,0 +1,23 @@
+{
+  "name": "Megjegyzes",
+  "type": "object",
+  "properties": {
+    "munkalap_id": {
+      "type": "string",
+      "title": "Munkalap ID"
+    },
+    "text": {
+      "type": "string",
+      "title": "Sz\u00f6veg"
+    },
+    "author_name": {
+      "type": "string",
+      "title": "Szerz\u0151",
+      "default": "Munkat\u00e1rs"
+    }
+  },
+  "required": [
+    "munkalap_id",
+    "text"
+  ]
+}

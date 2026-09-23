@@ -1,0 +1,64 @@
+{
+  "name": "Munkalap",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "Munkalap k\u00f3d"
+    },
+    "customer_name": {
+      "type": "string",
+      "title": "Vev\u0151 megnevez\u00e9se"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "egyengetes",
+        "bordazas",
+        "hajlitas",
+        "meretre_vagas",
+        "halo_hegesztes"
+      ],
+      "title": "M\u0171velet",
+      "default": "egyengetes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "terv_feldolgozas",
+        "elfogadasra_var",
+        "gyartas_folyamatban",
+        "rakodasra_elojegyezve",
+        "felrakva_kesz"
+      ],
+      "title": "St\u00e1tusz",
+      "default": "terv_feldolgozas"
+    },
+    "accepted": {
+      "type": "boolean",
+      "title": "Elfogadva",
+      "default": false
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Dokumentumok (URL)"
+    },
+    "progress": {
+      "type": "number",
+      "title": "El\u0151rehalad\u00e1s (%)",
+      "default": 10
+    },
+    "description": {
+      "type": "string",
+      "title": "Le\u00edr\u00e1s"
+    }
+  },
+  "required": [
+    "code",
+    "customer_name",
+    "operation"
+  ]
+}
