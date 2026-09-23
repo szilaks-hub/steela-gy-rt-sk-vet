@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { STAGES, operationLabel, operationColor, stageMeta, progressFor, NEXT_STATUS, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
+import { operationLabel, operationColor, stageMeta, NEXT_STATUS, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
+import { advanceMunkalap, acceptMunkalap } from "@/lib/munkalapActions";
 import CommentSection from "@/components/CommentSection";
 import MunkalapEditForm from "@/components/MunkalapEditForm";
+import MunkalapFlow from "@/components/MunkalapFlow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -37,7 +39,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const accept = async () => {
     setBusy(true);
     try {
-      const updated = await base44.entities.Munkalap.update(m.id, { accepted: true });
+      const updated = await acceptMunkalap(m);
       toast({ title: "Munkalap elfogadva" });
       onUpdated(updated);
     } finally {
@@ -49,10 +51,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     if (!canAdvance) return;
     setBusy(true);
     try {
-      const updated = await base44.entities.Munkalap.update(m.id, {
-        status: next,
-        progress: progressFor(next),
-      });
+      const updated = await advanceMunkalap(m, next);
       toast({ title: "Áthelyezve: " + stageMeta(next).label });
       onUpdated(updated);
     } finally {
@@ -142,6 +141,8 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
           <Archive className="w-3.5 h-3.5" /> Archivált munkalap
         </div>
       )}
+
+      <MunkalapFlow munkalap={m} />
 
       <div className="flex flex-wrap items-center gap-2">
         <span

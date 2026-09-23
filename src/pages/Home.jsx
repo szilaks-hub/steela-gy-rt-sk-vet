@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { OPERATIONS, STAGES, progressFor } from "@/lib/munkalapConfig";
+import { OPERATIONS, STAGES } from "@/lib/munkalapConfig";
+import { advanceMunkalap } from "@/lib/munkalapActions";
 import MunkalapCard from "@/components/MunkalapCard";
 import MunkalapForm from "@/components/MunkalapForm";
 import MunkalapDetail from "@/components/MunkalapDetail";
@@ -70,7 +71,7 @@ export default function Home() {
     const next = NEXT[m.status];
     if (!next) return;
     if (m.status === "elfogadasra_var" && !m.accepted) return;
-    await base44.entities.Munkalap.update(m.id, { status: next, progress: progressFor(next) });
+    await advanceMunkalap(m, next);
     load();
   };
 

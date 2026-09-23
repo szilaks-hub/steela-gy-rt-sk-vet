@@ -44,6 +44,10 @@
       "title": "Elfogadva",
       "default": false
     },
+    "elfogadva_at": {
+      "type": "string",
+      "title": "Elfogad\u00e1s id\u0151pontja (ISO)"
+    },
     "archived": {
       "type": "boolean",
       "title": "Archiv\u00e1lt",
@@ -55,6 +59,27 @@
         "type": "string"
       },
       "title": "Dokumentumok (URL)"
+    },
+    "stage_history": {
+      "type": "array",
+      "title": "Folyamat napl\u00f3 (f\u00e1zis v\u00e1lt\u00e1sok)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "title": "F\u00e1zis"
+          },
+          "at": {
+            "type": "string",
+            "title": "Id\u0151pont (ISO)"
+          },
+          "note": {
+            "type": "string",
+            "title": "Megjegyz\u00e9s"
+          }
+        }
+      }
     },
     "progress": {
       "type": "number",

@@ -74,6 +74,7 @@ export default function MunkalapForm({ onCreated }) {
         terv_hatarido: tervHatarido || undefined,
         gyartasi_datum: gyartasiDatum || undefined,
         kiszallitasi_datum: kiszallitasiDatum || undefined,
+        stage_history: [{ stage: "terv_feldolgozas", at: new Date().toISOString(), note: "Munkalap létrehozva" }],
       });
       reset();
       setOpen(false);
