@@ -53,15 +53,17 @@ export default function Home() {
 
   const filtered = useMemo(
     () =>
-      munkalapok.filter((m) => {
-        const matchArchive = showArchived ? m.archived === true : m.archived !== true;
-        const matchSearch =
-          !search ||
-          m.code?.toLowerCase().includes(search.toLowerCase()) ||
-          m.customer_name?.toLowerCase().includes(search.toLowerCase());
-        const matchOp = opFilter === "all" || m.operation === opFilter;
-        return matchArchive && matchSearch && matchOp;
-      }),
+      munkalapok
+        .filter((m) => {
+          const matchArchive = showArchived ? m.archived === true : m.archived !== true;
+          const matchSearch =
+            !search ||
+            m.code?.toLowerCase().includes(search.toLowerCase()) ||
+            m.customer_name?.toLowerCase().includes(search.toLowerCase());
+          const matchOp = opFilter === "all" || m.operation === opFilter;
+          return matchArchive && matchSearch && matchOp;
+        })
+        .sort((a, b) => (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0)),
     [munkalapok, search, opFilter, showArchived]
   );
 
@@ -72,6 +74,11 @@ export default function Home() {
     if (!next) return;
     if (m.status === "elfogadasra_var" && !m.accepted) return;
     await advanceMunkalap(m, next);
+    load();
+  };
+
+  const toggleFlag = async (m) => {
+    await base44.entities.Munkalap.update(m.id, { flagged: !m.flagged });
     load();
   };
 
@@ -182,6 +189,7 @@ export default function Home() {
                             commentCount={commentCounts[m.id] || 0}
                             onOpen={setSelected}
                             onAdvance={advance}
+                            onFlag={toggleFlag}
                           />
                         ))}
                         {items.length === 0 && (
@@ -203,6 +211,7 @@ export default function Home() {
                     commentCount={commentCounts[m.id] || 0}
                     onOpen={setSelected}
                     onAdvance={advance}
+                    onFlag={toggleFlag}
                   />
                 ))}
                 {byStage(stageTab).length === 0 && (
@@ -251,6 +260,7 @@ export default function Home() {
                     commentCount={commentCounts[m.id] || 0}
                     onOpen={setSelected}
                     onAdvance={advance}
+                    onFlag={toggleFlag}
                   />
                 ))}
                 {byStage(activeStage).length === 0 && (

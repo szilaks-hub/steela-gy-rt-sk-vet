@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2, Calendar, AlertTriangle, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
+import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2, Calendar, AlertTriangle, Pencil, Archive, ArchiveRestore, Trash2, Flag } from "lucide-react";
 
 export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const isMobile = useIsMobile();
@@ -33,7 +33,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const opColor = operationColor(m.operation);
   const next = NEXT_STATUS[m.status];
   const canAdvance = next && !(m.status === "elfogadasra_var" && !m.accepted) && !m.archived;
-  const tons = Number(m.quantity_tons);
+  const kg = Number(m.quantity_kg);
   const dl = deadlineStatus(m.terv_hatarido);
 
   const accept = async () => {
@@ -81,6 +81,17 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     }
   };
 
+  const toggleFlag = async () => {
+    setBusy(true);
+    try {
+      const updated = await base44.entities.Munkalap.update(m.id, { flagged: !m.flagged });
+      toast({ title: m.flagged ? "Jelölés eltávolítva" : "Kiemeltre jelölve" });
+      onUpdated(updated);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const Info = ({ label, value, color }) => (
     <div className="rounded-xl bg-[#F5F5F7] p-3">
       <p className="text-[0.75rem] text-[#86868B]">{label}</p>
@@ -90,6 +101,16 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
 
   const headerActions = (
     <div className="flex items-center gap-1">
+      <button
+        onClick={toggleFlag}
+        disabled={busy}
+        className={`w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-50 ${
+          m.flagged ? "text-red-500 bg-red-500/10" : "text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F]"
+        }`}
+        title={m.flagged ? "Jelölés eltávolítása" : "Kiemeltre jelölés"}
+      >
+        <Flag className="w-4 h-4" />
+      </button>
       <button
         onClick={() => setEditing(true)}
         disabled={busy}
@@ -136,6 +157,11 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
 
   const body = (
     <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+      {m.flagged && (
+        <div className="rounded-xl bg-red-500/10 text-red-500 px-3 py-2 text-[0.8125rem] font-semibold inline-flex items-center gap-1.5">
+          <Flag className="w-3.5 h-3.5" /> Kiemelt munkalap
+        </div>
+      )}
       {m.archived && (
         <div className="rounded-xl bg-[#86868B]/10 text-[#86868B] px-3 py-2 text-[0.8125rem] font-medium inline-flex items-center gap-1.5">
           <Archive className="w-3.5 h-3.5" /> Archivált munkalap
@@ -173,7 +199,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
       <div className="grid grid-cols-2 gap-3">
         <Info label="Vevő" value={m.customer_name} />
         <Info label="Művelet" value={operationLabel(m.operation)} color={opColor} />
-        <Info label="Mennyiség" value={tons > 0 ? `${tons.toLocaleString("hu-HU")} tonna` : "—"} />
+        <Info label="Mennyiség" value={kg > 0 ? `${kg.toLocaleString("hu-HU")} kg` : "—"} />
         <Info label="Felelős / Terv feldolgozó" value={m.felelos} />
       </div>
 

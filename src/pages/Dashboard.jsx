@@ -13,6 +13,7 @@ import {
   PieChart,
   Pie,
 } from "recharts";
+import FelelosStats from "@/components/FelelosStats";
 
 const OP_COLORS = ["#FF9500", "#FFCC00", "#FF6B35", "#34C759", "#5B9BD5"];
 
@@ -166,6 +167,7 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
+            <FelelosStats munkalapok={munkalapok} />
           </>
         )}
       </div>

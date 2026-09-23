@@ -15,7 +15,7 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
   const m = munkalap;
   const [customer, setCustomer] = useState(m.customer_name || "");
   const [operation, setOperation] = useState(m.operation || OPERATIONS[0].value);
-  const [quantity, setQuantity] = useState(m.quantity_tons != null ? String(m.quantity_tons) : "");
+  const [quantity, setQuantity] = useState(m.quantity_kg != null ? String(m.quantity_kg) : "");
   const [felelos, setFelelos] = useState(m.felelos || "");
   const [tervHatarido, setTervHatarido] = useState(m.terv_hatarido || "");
   const [gyartasiDatum, setGyartasiDatum] = useState(m.gyartasi_datum || "");
@@ -35,7 +35,7 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
       const updated = await base44.entities.Munkalap.update(m.id, {
         customer_name: customer.trim(),
         operation,
-        quantity_tons: quantity ? Number(quantity) : 0,
+        quantity_kg: quantity ? Number(quantity) : 0,
         felelos: felelos.trim(),
         terv_hatarido: tervHatarido || null,
         gyartasi_datum: gyartasiDatum || null,
@@ -80,7 +80,7 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Mennyiség (tonna)</Label>
+          <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Mennyiség (kg)</Label>
           <Input
             type="number"
             min="0"

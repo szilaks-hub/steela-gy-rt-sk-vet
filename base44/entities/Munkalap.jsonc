@@ -22,9 +22,9 @@
       "title": "M\u0171velet",
       "default": "egyengetes"
     },
-    "quantity_tons": {
+    "quantity_kg": {
       "type": "number",
-      "title": "Mennyis\u00e9g (tonna)",
+      "title": "Mennyis\u00e9g (kg)",
       "default": 0
     },
     "status": {
@@ -47,6 +47,11 @@
     "elfogadva_at": {
       "type": "string",
       "title": "Elfogad\u00e1s id\u0151pontja (ISO)"
+    },
+    "flagged": {
+      "type": "boolean",
+      "title": "Kiemelt / Jel\u00f6lt",
+      "default": false
     },
     "archived": {
       "type": "boolean",

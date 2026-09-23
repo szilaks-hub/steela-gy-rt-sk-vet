@@ -1,33 +1,40 @@
 import React from "react";
-import { MessageSquare, Paperclip, ChevronRight, Calendar } from "lucide-react";
+import { MessageSquare, Paperclip, ChevronRight, Calendar, Flag } from "lucide-react";
 import { operationLabel, operationColor, formatDate } from "@/lib/munkalapConfig";
 
-export default function MunkalapCard({ munkalap, onOpen, commentCount, onAdvance }) {
+export default function MunkalapCard({ munkalap, onOpen, commentCount, onAdvance, onFlag }) {
   const m = munkalap;
   const color = operationColor(m.operation);
   const docCount = (m.documents || []).length;
   const dateStr = m.kiszallitasi_datum || m.gyartasi_datum;
-  const tons = Number(m.quantity_tons);
+  const kg = Number(m.quantity_kg);
   return (
     <div
       onClick={() => onOpen(m)}
-      className="group bg-white rounded-xl border border-[#E5E5EA] p-3.5 pl-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)] hover:border-[#FF9500]/40 transition-all cursor-pointer relative overflow-hidden"
+      className={`group bg-white rounded-xl border p-3.5 pl-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-all cursor-pointer relative overflow-hidden ${
+        m.flagged ? "border-red-400/60 ring-1 ring-red-400/40" : "border-[#E5E5EA] hover:border-[#FF9500]/40"
+      }`}
     >
       <span className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: color }} />
       <div className="flex items-start justify-between gap-2">
         <span className="font-mono text-[0.8125rem] font-semibold text-[#1D1D1F] tracking-tight">{m.code}</span>
-        <span
-          className="text-[0.6875rem] font-medium px-2 py-0.5 rounded-full whitespace-nowrap"
-          style={{ backgroundColor: color + "1A", color }}
-        >
-          {operationLabel(m.operation)}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {m.flagged && (
+            <span className="text-[0.6875rem] font-semibold px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 inline-flex items-center gap-0.5">
+              <Flag className="w-3 h-3" />
+            </span>
+          )}
+          <span
+            className="text-[0.6875rem] font-medium px-2 py-0.5 rounded-full whitespace-nowrap"
+            style={{ backgroundColor: color + "1A", color }}
+          >
+            {operationLabel(m.operation)}
+          </span>
+        </div>
       </div>
       <p className="mt-1.5 text-[0.875rem] text-[#1D1D1F] font-medium truncate">{m.customer_name}</p>
       <div className="mt-1.5 flex items-center gap-3 text-[0.75rem] text-[#86868B]">
-        {tons > 0 && (
-          <span className="font-semibold text-[#1D1D1F]">{tons.toLocaleString("hu-HU")} t</span>
-        )}
+        {kg > 0 && <span className="font-semibold text-[#1D1D1F]">{kg.toLocaleString("hu-HU")} kg</span>}
         {dateStr && (
           <span className="inline-flex items-center gap-1">
             <Calendar className="w-3 h-3" />
@@ -45,6 +52,18 @@ export default function MunkalapCard({ munkalap, onOpen, commentCount, onAdvance
       </div>
       <div className="mt-3 flex items-center justify-between">
         <div className="flex items-center gap-3 text-[#86868B]">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFlag?.(m);
+            }}
+            className={`inline-flex items-center gap-1 text-[0.75rem] transition-colors ${
+              m.flagged ? "text-red-500" : "hover:text-[#1D1D1F]"
+            }`}
+            title={m.flagged ? "Jelölés eltávolítása" : "Kiemeltre jelölés"}
+          >
+            <Flag className="w-3.5 h-3.5" />
+          </button>
           <span className="inline-flex items-center gap-1 text-[0.75rem]">
             <Paperclip className="w-3.5 h-3.5" />
             {docCount}

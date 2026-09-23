@@ -64,7 +64,7 @@ export default function MunkalapForm({ onCreated }) {
         code,
         customer_name: customer.trim(),
         operation,
-        quantity_tons: quantity ? Number(quantity) : 0,
+        quantity_kg: quantity ? Number(quantity) : 0,
         status: "terv_feldolgozas",
         accepted: false,
         documents: docUrls,
@@ -133,7 +133,7 @@ export default function MunkalapForm({ onCreated }) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Mennyiség (tonna)</Label>
+          <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Mennyiség (kg)</Label>
           <Input
             type="number"
             min="0"
