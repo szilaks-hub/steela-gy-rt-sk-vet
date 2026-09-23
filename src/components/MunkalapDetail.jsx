@@ -2,22 +2,35 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { STAGES, operationLabel, operationColor, stageMeta, progressFor, NEXT_STATUS, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
 import CommentSection from "@/components/CommentSection";
+import MunkalapEditForm from "@/components/MunkalapEditForm";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2, Calendar, User, AlertTriangle } from "lucide-react";
+import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2, Calendar, AlertTriangle, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react";
 
 export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
   const m = munkalap;
   const stage = stageMeta(m.status);
   const StageIcon = stage.icon;
   const opColor = operationColor(m.operation);
   const next = NEXT_STATUS[m.status];
-  const canAdvance = next && !(m.status === "elfogadasra_var" && !m.accepted);
+  const canAdvance = next && !(m.status === "elfogadasra_var" && !m.accepted) && !m.archived;
   const tons = Number(m.quantity_tons);
   const dl = deadlineStatus(m.terv_hatarido);
 
@@ -47,6 +60,28 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     }
   };
 
+  const archive = async () => {
+    setBusy(true);
+    try {
+      await base44.entities.Munkalap.update(m.id, { archived: !m.archived });
+      toast({ title: m.archived ? "Visszaállítva" : "Archiválva" });
+      onUpdated(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const del = async () => {
+    setBusy(true);
+    try {
+      await base44.entities.Munkalap.delete(m.id);
+      toast({ title: "Munkalap törölve" });
+      onUpdated(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const Info = ({ label, value, color }) => (
     <div className="rounded-xl bg-[#F5F5F7] p-3">
       <p className="text-[0.75rem] text-[#86868B]">{label}</p>
@@ -54,8 +89,60 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     </div>
   );
 
+  const headerActions = (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => setEditing(true)}
+        disabled={busy}
+        className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center disabled:opacity-50"
+        title="Szerkesztés"
+      >
+        <Pencil className="w-4 h-4" />
+      </button>
+      <button
+        onClick={archive}
+        disabled={busy}
+        className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center disabled:opacity-50"
+        title={m.archived ? "Visszaállítás" : "Archiválás"}
+      >
+        {m.archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+      </button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <button
+            disabled={busy}
+            className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center disabled:opacity-50"
+            title="Törlés"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Munkalap törlése</AlertDialogTitle>
+            <AlertDialogDescription>
+              Biztosan törlöd a(z) {m.code} munkalapot? Ez a művelet nem visszavonható.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Mégse</AlertDialogCancel>
+            <AlertDialogAction onClick={del} className="bg-red-500 hover:bg-red-500/90 text-white">
+              Törlés
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+
   const body = (
     <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+      {m.archived && (
+        <div className="rounded-xl bg-[#86868B]/10 text-[#86868B] px-3 py-2 text-[0.8125rem] font-medium inline-flex items-center gap-1.5">
+          <Archive className="w-3.5 h-3.5" /> Archivált munkalap
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <span
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.75rem] font-semibold"
@@ -126,11 +213,8 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         </div>
       )}
 
-      {m.felelos && m.status === "terv_feldolgozas" && dl && dl.diff <= 3 && (
-        <div
-          className="rounded-xl p-3 flex items-start gap-2"
-          style={{ backgroundColor: dl.color + "14" }}
-        >
+      {m.felelos && m.status === "terv_feldolgozas" && !m.archived && dl && dl.diff <= 3 && (
+        <div className="rounded-xl p-3 flex items-start gap-2" style={{ backgroundColor: dl.color + "14" }}>
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: dl.color }} />
           <p className="text-[0.8125rem]" style={{ color: dl.color }}>
             {dl.diff < 0
@@ -196,36 +280,49 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
 
   const footer = (
     <div className="border-t border-[#E5E5EA] px-5 py-3.5 bg-white space-y-2">
-      {m.status === "elfogadasra_var" && !m.accepted && (
-        <p className="text-[0.75rem] text-[#9a7b00] text-center">Először el kell fogadni a munkalapot a gyártáshoz.</p>
-      )}
-      <div className="flex gap-2.5">
-        {m.status === "elfogadasra_var" && !m.accepted && (
-          <button
-            onClick={accept}
-            disabled={busy}
-            className="flex-1 h-11 rounded-full bg-[#34C759] hover:bg-[#34C759]/90 text-white text-[0.875rem] font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60"
-          >
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-            Elfogadás
-          </button>
-        )}
-        {next && (
-          <button
-            onClick={advance}
-            disabled={busy || !canAdvance}
-            className="flex-1 h-11 rounded-full bg-[#FF9500] hover:bg-[#FF9500]/90 text-white text-[0.875rem] font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
-          >
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-            {stageMeta(next).short} fázisba
-          </button>
-        )}
-        {!next && (
-          <div className="flex-1 text-center text-[0.875rem] text-[#34C759] font-medium py-2.5 inline-flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4" /> Gyártás befejezve
+      {m.archived ? (
+        <button
+          onClick={archive}
+          disabled={busy}
+          className="w-full h-11 rounded-full bg-[#1D1D1F] hover:bg-[#1D1D1F]/90 text-white text-[0.875rem] font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60"
+        >
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArchiveRestore className="w-4 h-4" />}
+          Visszaállítás aktívba
+        </button>
+      ) : (
+        <>
+          {m.status === "elfogadasra_var" && !m.accepted && (
+            <p className="text-[0.75rem] text-[#9a7b00] text-center">Először el kell fogadni a munkalapot a gyártáshoz.</p>
+          )}
+          <div className="flex gap-2.5">
+            {m.status === "elfogadasra_var" && !m.accepted && (
+              <button
+                onClick={accept}
+                disabled={busy}
+                className="flex-1 h-11 rounded-full bg-[#34C759] hover:bg-[#34C759]/90 text-white text-[0.875rem] font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                Elfogadás
+              </button>
+            )}
+            {next && (
+              <button
+                onClick={advance}
+                disabled={busy || !canAdvance}
+                className="flex-1 h-11 rounded-full bg-[#FF9500] hover:bg-[#FF9500]/90 text-white text-[0.875rem] font-medium inline-flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                {stageMeta(next).short} fázisba
+              </button>
+            )}
+            {!next && (
+              <div className="flex-1 text-center text-[0.875rem] text-[#34C759] font-medium py-2.5 inline-flex items-center justify-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" /> Gyártás befejezve
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 
@@ -236,27 +333,58 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     </div>
   );
 
+  const headerEl = (TitleComp) => (
+    <div className="flex items-center justify-between pr-2">
+      <TitleComp className="text-[1rem] font-semibold text-[#1D1D1F] font-mono">{m.code}</TitleComp>
+      {headerActions}
+    </div>
+  );
+
   if (isMobile) {
     return (
-      <Drawer open={true} onOpenChange={(o) => !o && onClose()}>
-        <DrawerContent className="h-[90vh] flex flex-col gap-0">
-          <DrawerHeader className="px-5 pt-3 pb-2 border-b border-[#E5E5EA]">
-            <DrawerTitle className="text-[1rem] font-semibold text-[#1D1D1F] font-mono">{m.code}</DrawerTitle>
-          </DrawerHeader>
-          {content}
-        </DrawerContent>
-      </Drawer>
+      <>
+        <Drawer open={true} onOpenChange={(o) => !o && onClose()}>
+          <DrawerContent className="h-[90vh] flex flex-col gap-0">
+            <DrawerHeader className="px-5 pt-3 pb-2 border-b border-[#E5E5EA]">
+              {headerEl(DrawerTitle)}
+            </DrawerHeader>
+            {content}
+          </DrawerContent>
+        </Drawer>
+        {editing && (
+          <MunkalapEditForm
+            munkalap={m}
+            onSaved={(updated) => {
+              setEditing(false);
+              onUpdated(updated);
+            }}
+            onClose={() => setEditing(false)}
+          />
+        )}
+      </>
     );
   }
 
   return (
-    <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0">
-        <SheetHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA]">
-          <SheetTitle className="text-[1rem] font-semibold text-[#1D1D1F] font-mono">{m.code}</SheetTitle>
-        </SheetHeader>
-        {content}
-      </SheetContent>
-    </Sheet>
+    <>
+      <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
+        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0">
+          <SheetHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA]">
+            {headerEl(SheetTitle)}
+          </SheetHeader>
+          {content}
+        </SheetContent>
+      </Sheet>
+      {editing && (
+        <MunkalapEditForm
+          munkalap={m}
+          onSaved={(updated) => {
+            setEditing(false);
+            onUpdated(updated);
+          }}
+          onClose={() => setEditing(false)}
+        />
+      )}
+    </>
   );
 }

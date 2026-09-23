@@ -36,6 +36,7 @@ export default function Naptar() {
   const byDate = useMemo(() => {
     const map = {};
     munkalapok.forEach((m) => {
+      if (m.archived === true) return;
       const d = m[dateField];
       if (d) (map[d] = map[d] || []).push(m);
     });
@@ -159,7 +160,8 @@ export default function Naptar() {
           munkalap={selected}
           onClose={() => setSelected(null)}
           onUpdated={(m) => {
-            setSelected(m);
+            if (m) setSelected(m);
+            else setSelected(null);
             load();
           }}
         />

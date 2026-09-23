@@ -44,6 +44,11 @@
       "title": "Elfogadva",
       "default": false
     },
+    "archived": {
+      "type": "boolean",
+      "title": "Archiv\u00e1lt",
+      "default": false
+    },
     "documents": {
       "type": "array",
       "items": {

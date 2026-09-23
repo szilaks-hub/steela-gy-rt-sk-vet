@@ -7,7 +7,7 @@ import MunkalapDetail from "@/components/MunkalapDetail";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Factory } from "lucide-react";
+import { Search, Factory, Archive } from "lucide-react";
 
 const NEXT = {
   terv_feldolgozas: "elfogadasra_var",
@@ -27,6 +27,7 @@ export default function Home() {
   const [activeStage, setActiveStage] = useState(STAGES[0].value);
   const [stageTab, setStageTab] = useState("osszes");
   const [selected, setSelected] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
   const [commentCounts, setCommentCounts] = useState({});
 
   const load = async () => {
@@ -52,14 +53,15 @@ export default function Home() {
   const filtered = useMemo(
     () =>
       munkalapok.filter((m) => {
+        const matchArchive = showArchived ? m.archived === true : m.archived !== true;
         const matchSearch =
           !search ||
           m.code?.toLowerCase().includes(search.toLowerCase()) ||
           m.customer_name?.toLowerCase().includes(search.toLowerCase());
         const matchOp = opFilter === "all" || m.operation === opFilter;
-        return matchSearch && matchOp;
+        return matchArchive && matchSearch && matchOp;
       }),
-    [munkalapok, search, opFilter]
+    [munkalapok, search, opFilter, showArchived]
   );
 
   const byStage = (stage) => filtered.filter((m) => m.status === stage);
@@ -114,6 +116,15 @@ export default function Home() {
             </SelectContent>
           </Select>
         </div>
+        <button
+          onClick={() => setShowArchived((v) => !v)}
+          className={`hidden sm:inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full text-[0.8125rem] font-medium transition-colors shrink-0 ${
+            showArchived ? "bg-[#86868B] text-white" : "bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F]"
+          }`}
+          title={showArchived ? "Aktív munkák mutatása" : "Archívum mutatása"}
+        >
+          <Archive className="w-4 h-4" /> {showArchived ? "Aktív" : "Archívum"}
+        </button>
         <MunkalapForm onCreated={load} />
       </header>
 
@@ -122,7 +133,7 @@ export default function Home() {
           <div className="flex gap-2 px-4 md:px-6 py-3 border-b border-[#E5E5EA] bg-white/40 overflow-x-auto no-scrollbar shrink-0">
             {TABS.map((t) => {
               const active = stageTab === t.value;
-              const cnt = t.value === "osszes" ? munkalapok.length : byStage(t.value).length;
+              const cnt = t.value === "osszes" ? filtered.length : byStage(t.value).length;
               return (
                 <button
                   key={t.value}
@@ -257,7 +268,8 @@ export default function Home() {
           munkalap={selected}
           onClose={() => setSelected(null)}
           onUpdated={(m) => {
-            setSelected(m);
+            if (m) setSelected(m);
+            else setSelected(null);
             load();
           }}
         />
