@@ -15,9 +15,6 @@ import { advanceMunkalap, acceptMunkalap } from "@/lib/munkalapActions";
 import CommentSection from "@/components/CommentSection";
 import MunkalapEditForm from "@/components/MunkalapEditForm";
 import MunkalapFlow from "@/components/MunkalapFlow";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,10 +49,10 @@ import {
   Bell,
   X,
   SearchCheck,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
-  const isMobile = useIsMobile();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -182,15 +179,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {isMobile && (
-        <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-lg text-[#86868B] hover:bg-black/5 hover:text-[#1D1D1F] flex items-center justify-center transition-colors"
-          title="Bezárás"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
+
     </div>
   );
 
@@ -499,16 +488,23 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     </div>
   );
 
-  const hero = (TitleComp) => (
+  const hero = (
     <div>
       <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${opColor}, ${stage.color})` }} />
-      <div className="px-5 pt-4 pb-3.5">
-        <div className="flex items-start justify-between gap-2 sm:pr-7">
-          <div className="min-w-0">
-            <TitleComp className="text-[1rem] font-semibold text-[#1D1D1F] font-mono leading-tight block">
-              {m.code}
-            </TitleComp>
-            <p className="text-[0.875rem] text-[#1D1D1F] font-medium truncate mt-1">{m.customer_name}</p>
+      <div className="px-5 pt-3 pb-3.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              onClick={onClose}
+              className="shrink-0 w-9 h-9 rounded-full hover:bg-black/5 flex items-center justify-center text-[#1D1D1F] transition-colors"
+              title="Vissza"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div className="min-w-0">
+              <h2 className="text-[1rem] font-semibold text-[#1D1D1F] font-mono leading-tight truncate">{m.code}</h2>
+              <p className="text-[0.875rem] text-[#1D1D1F] font-medium truncate">{m.customer_name}</p>
+            </div>
           </div>
           {headerActions}
         </div>
@@ -551,37 +547,12 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <>
-        <Drawer open={true} onOpenChange={(o) => !o && onClose()}>
-          <DrawerContent className="h-[90vh] flex flex-col gap-0 bg-white">
-            <DrawerHeader className="p-0">{hero(DrawerTitle)}</DrawerHeader>
-            {content}
-          </DrawerContent>
-        </Drawer>
-        {editing && (
-          <MunkalapEditForm
-            munkalap={m}
-            onSaved={(updated) => {
-              setEditing(false);
-              onUpdated(updated);
-            }}
-            onClose={() => setEditing(false)}
-          />
-        )}
-      </>
-    );
-  }
-
   return (
     <>
-      <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
-        <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0 bg-white">
-          <SheetHeader className="p-0">{hero(SheetTitle)}</SheetHeader>
-          {content}
-        </SheetContent>
-      </Sheet>
+      <div className="fixed inset-0 z-50 bg-white flex flex-col animate-in slide-in-from-right duration-300">
+        <div className="border-b border-[#EDEDF0] shrink-0">{hero}</div>
+        {content}
+      </div>
       {editing && (
         <MunkalapEditForm
           munkalap={m}
