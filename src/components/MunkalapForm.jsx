@@ -15,6 +15,11 @@ export default function MunkalapForm({ onCreated }) {
   const [open, setOpen] = useState(false);
   const [customer, setCustomer] = useState("");
   const [operation, setOperation] = useState(OPERATIONS[0].value);
+  const [quantity, setQuantity] = useState("");
+  const [felelos, setFelelos] = useState("");
+  const [tervHatarido, setTervHatarido] = useState("");
+  const [gyartasiDatum, setGyartasiDatum] = useState("");
+  const [kiszallitasiDatum, setKiszallitasiDatum] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -23,6 +28,11 @@ export default function MunkalapForm({ onCreated }) {
   const reset = () => {
     setCustomer("");
     setOperation(OPERATIONS[0].value);
+    setQuantity("");
+    setFelelos("");
+    setTervHatarido("");
+    setGyartasiDatum("");
+    setKiszallitasiDatum("");
     setDescription("");
     setFiles([]);
     setError("");
@@ -54,11 +64,16 @@ export default function MunkalapForm({ onCreated }) {
         code,
         customer_name: customer.trim(),
         operation,
+        quantity_tons: quantity ? Number(quantity) : 0,
         status: "terv_feldolgozas",
         accepted: false,
         documents: docUrls,
         progress: progressFor("terv_feldolgozas"),
         description: description.trim(),
+        felelos: felelos.trim(),
+        terv_hatarido: tervHatarido || undefined,
+        gyartasi_datum: gyartasiDatum || undefined,
+        kiszallitasi_datum: kiszallitasiDatum || undefined,
       });
       reset();
       setOpen(false);
@@ -87,6 +102,8 @@ export default function MunkalapForm({ onCreated }) {
     </button>
   );
 
+  const dateInputClass = "h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]";
+
   const fields = (
     <div className="space-y-4 px-5 py-4 overflow-y-auto flex-1 min-h-0">
       <div className="space-y-1.5">
@@ -98,20 +115,62 @@ export default function MunkalapForm({ onCreated }) {
           className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
         />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Művelet</Label>
+          <Select value={operation} onValueChange={setOperation}>
+            <SelectTrigger className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {OPERATIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Mennyiség (tonna)</Label>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder="0"
+            className={dateInputClass}
+          />
+        </div>
+      </div>
       <div className="space-y-1.5">
-        <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Művelet</Label>
-        <Select value={operation} onValueChange={setOperation}>
-          <SelectTrigger className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {OPERATIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Felelős / Terv feldolgozó</Label>
+        <Input
+          value={felelos}
+          onChange={(e) => setFelelos(e.target.value)}
+          placeholder="Ki végzi a terv feldolgozást"
+          className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Dátumok</Label>
+        <div className="grid grid-cols-1 gap-2.5">
+          <div>
+            <span className="text-[0.6875rem] text-[#86868B]">Terv feldolgozás határideje (vevő kérés)</span>
+            <Input type="date" value={tervHatarido} onChange={(e) => setTervHatarido(e.target.value)} className={dateInputClass} />
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div>
+              <span className="text-[0.6875rem] text-[#86868B]">Gyártási nap</span>
+              <Input type="date" value={gyartasiDatum} onChange={(e) => setGyartasiDatum(e.target.value)} className={dateInputClass} />
+            </div>
+            <div>
+              <span className="text-[0.6875rem] text-[#86868B]">Kiszállítás</span>
+              <Input type="date" value={kiszallitasiDatum} onChange={(e) => setKiszallitasiDatum(e.target.value)} className={dateInputClass} />
+            </div>
+          </div>
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Leírás</Label>
@@ -171,7 +230,7 @@ export default function MunkalapForm({ onCreated }) {
       {trigger}
       {isMobile ? (
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="h-[85vh] flex flex-col gap-0">
+          <DrawerContent className="h-[88vh] flex flex-col gap-0">
             <DrawerHeader className="px-5 pt-3 pb-2 shrink-0">
               <DrawerTitle className="text-[1rem] font-semibold text-[#1D1D1F]">Új munkalap</DrawerTitle>
             </DrawerHeader>
@@ -181,7 +240,7 @@ export default function MunkalapForm({ onCreated }) {
         </Drawer>
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-md p-0 gap-0 flex flex-col max-h-[88vh]">
+          <DialogContent className="sm:max-w-md p-0 gap-0 flex flex-col max-h-[90vh]">
             <DialogHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA] shrink-0">
               <DialogTitle className="text-[1rem] font-semibold text-[#1D1D1F]">Új munkalap</DialogTitle>
             </DialogHeader>

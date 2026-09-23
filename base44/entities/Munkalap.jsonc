@@ -22,6 +22,11 @@
       "title": "M\u0171velet",
       "default": "egyengetes"
     },
+    "quantity_tons": {
+      "type": "number",
+      "title": "Mennyis\u00e9g (tonna)",
+      "default": 0
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -54,6 +59,25 @@
     "description": {
       "type": "string",
       "title": "Le\u00edr\u00e1s"
+    },
+    "terv_hatarido": {
+      "type": "string",
+      "format": "date",
+      "title": "Terv feldolgoz\u00e1s hat\u00e1rideje (vev\u0151 k\u00e9r\u00e9s)"
+    },
+    "gyartasi_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Gy\u00e1rt\u00e1si nap"
+    },
+    "kiszallitasi_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Kisz\u00e1ll\u00edt\u00e1si d\u00e1tum"
+    },
+    "felelos": {
+      "type": "string",
+      "title": "Felel\u0151s / Terv feldolgoz\u00f3"
     }
   },
   "required": [

@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { STAGES, operationLabel, stageMeta, progressFor, NEXT_STATUS } from "@/lib/munkalapConfig";
+import { STAGES, operationLabel, operationColor, stageMeta, progressFor, NEXT_STATUS, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
 import CommentSection from "@/components/CommentSection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronRight, Paperclip, FileText, ExternalLink, Check, Loader2, Calendar, User, AlertTriangle } from "lucide-react";
 
 export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const isMobile = useIsMobile();
@@ -15,8 +15,11 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   const m = munkalap;
   const stage = stageMeta(m.status);
   const StageIcon = stage.icon;
+  const opColor = operationColor(m.operation);
   const next = NEXT_STATUS[m.status];
   const canAdvance = next && !(m.status === "elfogadasra_var" && !m.accepted);
+  const tons = Number(m.quantity_tons);
+  const dl = deadlineStatus(m.terv_hatarido);
 
   const accept = async () => {
     setBusy(true);
@@ -44,6 +47,13 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     }
   };
 
+  const Info = ({ label, value, color }) => (
+    <div className="rounded-xl bg-[#F5F5F7] p-3">
+      <p className="text-[0.75rem] text-[#86868B]">{label}</p>
+      <p className="text-[0.875rem] font-medium mt-0.5" style={color ? { color } : { color: "#1D1D1F" }}>{value || "—"}</p>
+    </div>
+  );
+
   const body = (
     <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
       <div className="flex flex-wrap items-center gap-2">
@@ -53,6 +63,12 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
         >
           <StageIcon className="w-3.5 h-3.5" />
           {stage.label}
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.75rem] font-semibold"
+          style={{ backgroundColor: opColor + "1A", color: opColor }}
+        >
+          {operationLabel(m.operation)}
         </span>
         {m.status === "elfogadasra_var" && (
           <span
@@ -67,15 +83,62 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-[#F5F5F7] p-3">
-          <p className="text-[0.75rem] text-[#86868B]">Vevő</p>
-          <p className="text-[0.875rem] font-medium text-[#1D1D1F] mt-0.5">{m.customer_name}</p>
-        </div>
-        <div className="rounded-xl bg-[#F5F5F7] p-3">
-          <p className="text-[0.75rem] text-[#86868B]">Művelet</p>
-          <p className="text-[0.875rem] font-medium text-[#1D1D1F] mt-0.5">{operationLabel(m.operation)}</p>
-        </div>
+        <Info label="Vevő" value={m.customer_name} />
+        <Info label="Művelet" value={operationLabel(m.operation)} color={opColor} />
+        <Info label="Mennyiség" value={tons > 0 ? `${tons.toLocaleString("hu-HU")} tonna` : "—"} />
+        <Info label="Felelős / Terv feldolgozó" value={m.felelos} />
       </div>
+
+      {(m.terv_hatarido || m.gyartasi_datum || m.kiszallitasi_datum) && (
+        <div className="rounded-xl border border-[#E5E5EA] p-3.5 space-y-2.5">
+          <p className="text-[0.75rem] text-[#86868B] flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5" /> Dátumok
+          </p>
+          {m.terv_hatarido && (
+            <div className="flex items-center justify-between">
+              <span className="text-[0.8125rem] text-[#1D1D1F]">Terv határidő (vevő)</span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.terv_hatarido)}</span>
+                {dl && (
+                  <span
+                    className="text-[0.6875rem] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                    style={{ backgroundColor: dl.color + "1A", color: dl.color }}
+                  >
+                    {dl.diff < 0 && <AlertTriangle className="w-3 h-3" />}
+                    {dl.label}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+          {m.gyartasi_datum && (
+            <div className="flex items-center justify-between">
+              <span className="text-[0.8125rem] text-[#1D1D1F]">Gyártási nap</span>
+              <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.gyartasi_datum)}</span>
+            </div>
+          )}
+          {m.kiszallitasi_datum && (
+            <div className="flex items-center justify-between">
+              <span className="text-[0.8125rem] text-[#1D1D1F]">Kiszállítás</span>
+              <span className="text-[0.8125rem] font-medium text-[#1D1D1F]">{formatDate(m.kiszallitasi_datum)}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {m.felelos && m.status === "terv_feldolgozas" && dl && dl.diff <= 3 && (
+        <div
+          className="rounded-xl p-3 flex items-start gap-2"
+          style={{ backgroundColor: dl.color + "14" }}
+        >
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: dl.color }} />
+          <p className="text-[0.8125rem]" style={{ color: dl.color }}>
+            {dl.diff < 0
+              ? `A terv feldolgozás határideje lejárt! (${m.felelos})`
+              : `${m.felelos}: a terv feldolgozást ${dl.label} múlva le kell adni.`}
+          </p>
+        </div>
+      )}
 
       <div>
         <div className="flex justify-between text-[0.75rem] text-[#86868B] mb-1.5">

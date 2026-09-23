@@ -16,6 +16,8 @@ const NEXT = {
   rakodasra_elojegyezve: "felrakva_kesz",
 };
 
+const TABS = [{ value: "osszes", label: "Összes" }, ...STAGES.map((s) => ({ value: s.value, label: s.short }))];
+
 export default function Home() {
   const isMobile = useIsMobile();
   const [munkalapok, setMunkalapok] = useState([]);
@@ -23,6 +25,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [opFilter, setOpFilter] = useState("all");
   const [activeStage, setActiveStage] = useState(STAGES[0].value);
+  const [stageTab, setStageTab] = useState("osszes");
   const [selected, setSelected] = useState(null);
   const [commentCounts, setCommentCounts] = useState({});
 
@@ -69,9 +72,15 @@ export default function Home() {
     load();
   };
 
+  const spinner = (
+    <div className="flex items-center justify-center h-full py-24">
+      <div className="w-8 h-8 border-4 border-[#E5E5EA] border-t-[#FF9500] rounded-full animate-spin" />
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center gap-3 px-4 md:px-6 h-16 border-b border-[#E5E5EA] bg-white/70 backdrop-blur-xl sticky top-0 z-20">
+      <header className="flex items-center gap-3 px-4 md:px-6 h-16 border-b border-[#E5E5EA] bg-white/70 backdrop-blur-xl sticky top-0 z-20 shrink-0">
         <div className="flex items-center gap-2 md:hidden">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF9500] to-[#FFCC00] flex items-center justify-center text-white">
             <Factory className="w-4 h-4" />
@@ -109,53 +118,89 @@ export default function Home() {
       </header>
 
       {!isMobile && (
-        <div className="flex-1 overflow-x-auto p-4 md:p-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="w-8 h-8 border-4 border-[#E5E5EA] border-t-[#FF9500] rounded-full animate-spin" />
-            </div>
-          ) : (
-            <div className="flex gap-4 min-w-max h-full">
-              {STAGES.map((stage) => {
-                const items = byStage(stage.value);
-                const Icon = stage.icon;
-                return (
-                  <div key={stage.value} className="flex-1 min-w-[260px] flex flex-col">
-                    <div className="flex items-center justify-between px-2 mb-3">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="w-7 h-7 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: stage.color + "1A", color: stage.color }}
-                        >
-                          <Icon className="w-4 h-4" />
-                        </span>
-                        <h2 className="text-[0.9375rem] font-semibold text-[#1D1D1F]">{stage.label}</h2>
-                      </div>
-                      <span className="text-[0.75rem] font-medium text-[#86868B] bg-[#E5E5EA]/60 rounded-full px-2 py-0.5">
-                        {items.length}
-                      </span>
-                    </div>
-                    <div className="flex-1 space-y-3 overflow-y-auto pr-1 pb-2">
-                      {items.map((m) => (
-                        <MunkalapCard
-                          key={m.id}
-                          munkalap={m}
-                          commentCount={commentCounts[m.id] || 0}
-                          onOpen={setSelected}
-                          onAdvance={advance}
-                        />
-                      ))}
-                      {items.length === 0 && (
-                        <div className="text-center text-[0.8125rem] text-[#86868B] py-10 border border-dashed border-[#E5E5EA] rounded-xl">
-                          Nincs munkalap
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex gap-2 px-4 md:px-6 py-3 border-b border-[#E5E5EA] bg-white/40 overflow-x-auto no-scrollbar shrink-0">
+            {TABS.map((t) => {
+              const active = stageTab === t.value;
+              const cnt = t.value === "osszes" ? munkalapok.length : byStage(t.value).length;
+              return (
+                <button
+                  key={t.value}
+                  onClick={() => setStageTab(t.value)}
+                  className={`shrink-0 inline-flex items-center gap-1.5 px-4 h-9 rounded-full text-[0.8125rem] font-medium transition-colors ${
+                    active ? "bg-[#1D1D1F] text-white" : "bg-[#E5E5EA]/60 text-[#86868B] hover:text-[#1D1D1F]"
+                  }`}
+                >
+                  {t.label}
+                  <span className={active ? "text-white/70" : "text-[#86868B]"}>{cnt}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex-1 overflow-auto p-4 md:p-6">
+            {loading ? (
+              spinner
+            ) : stageTab === "osszes" ? (
+              <div className="flex gap-4 min-w-max h-full">
+                {STAGES.map((stage) => {
+                  const items = byStage(stage.value);
+                  const Icon = stage.icon;
+                  return (
+                    <div key={stage.value} className="flex-1 min-w-[260px] flex flex-col">
+                      <div className="flex items-center justify-between px-2 mb-3">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-7 h-7 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: stage.color + "1A", color: stage.color }}
+                          >
+                            <Icon className="w-4 h-4" />
+                          </span>
+                          <h2 className="text-[0.9375rem] font-semibold text-[#1D1D1F]">{stage.label}</h2>
                         </div>
-                      )}
+                        <span className="text-[0.75rem] font-medium text-[#86868B] bg-[#E5E5EA]/60 rounded-full px-2 py-0.5">
+                          {items.length}
+                        </span>
+                      </div>
+                      <div className="flex-1 space-y-3 overflow-y-auto pr-1 pb-2">
+                        {items.map((m) => (
+                          <MunkalapCard
+                            key={m.id}
+                            munkalap={m}
+                            commentCount={commentCounts[m.id] || 0}
+                            onOpen={setSelected}
+                            onAdvance={advance}
+                          />
+                        ))}
+                        {items.length === 0 && (
+                          <div className="text-center text-[0.8125rem] text-[#86868B] py-10 border border-dashed border-[#E5E5EA] rounded-xl">
+                            Nincs munkalap
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {byStage(stageTab).map((m) => (
+                  <MunkalapCard
+                    key={m.id}
+                    munkalap={m}
+                    commentCount={commentCounts[m.id] || 0}
+                    onOpen={setSelected}
+                    onAdvance={advance}
+                  />
+                ))}
+                {byStage(stageTab).length === 0 && (
+                  <div className="col-span-full text-center text-[0.8125rem] text-[#86868B] py-16 border border-dashed border-[#E5E5EA] rounded-xl">
+                    Nincs munkalap ebben a fázisban
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

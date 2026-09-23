@@ -10,6 +10,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import Dashboard from '@/pages/Dashboard';
+import Naptar from '@/pages/Naptar';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
+          <Route path="/naptar" element={<Naptar />} />
           <Route path="/dashboard" element={<Dashboard />} />
         </Route>
       </Route>

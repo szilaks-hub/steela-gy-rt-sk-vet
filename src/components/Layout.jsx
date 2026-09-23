@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import { Factory, LayoutDashboard, BarChart3 } from "lucide-react";
+import { Factory, LayoutDashboard, BarChart3, Calendar } from "lucide-react";
 
 const navClass = ({ isActive }) =>
   `w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
@@ -17,6 +17,9 @@ export default function Layout() {
         <nav className="flex flex-col gap-2">
           <NavLink to="/" end className={navClass} title="Csővezeték">
             <LayoutDashboard className="w-5 h-5" />
+          </NavLink>
+          <NavLink to="/naptar" className={navClass} title="Naptár">
+            <Calendar className="w-5 h-5" />
           </NavLink>
           <NavLink to="/dashboard" className={navClass} title="Áttekintés">
             <BarChart3 className="w-5 h-5" />
