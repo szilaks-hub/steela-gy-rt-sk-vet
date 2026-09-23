@@ -120,7 +120,7 @@ export default function Home() {
                 const items = byStage(stage.value);
                 const Icon = stage.icon;
                 return (
-                  <div key={stage.value} className="flex-1 min-w-[260px] max-w-[340px] flex flex-col">
+                  <div key={stage.value} className="flex-1 min-w-[260px] flex flex-col">
                     <div className="flex items-center justify-between px-2 mb-3">
                       <div className="flex items-center gap-2">
                         <span

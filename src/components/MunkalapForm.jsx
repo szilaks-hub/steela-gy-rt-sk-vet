@@ -88,7 +88,7 @@ export default function MunkalapForm({ onCreated }) {
   );
 
   const fields = (
-    <div className="space-y-4 px-5 py-4">
+    <div className="space-y-4 px-5 py-4 overflow-y-auto flex-1 min-h-0">
       <div className="space-y-1.5">
         <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Vevő megnevezése *</Label>
         <Input
@@ -149,7 +149,7 @@ export default function MunkalapForm({ onCreated }) {
   );
 
   const footer = (
-    <div className="px-5 pb-5 pt-1 flex gap-2.5">
+    <div className="px-5 pb-5 pt-1 flex gap-2.5 shrink-0">
       <button
         onClick={() => setOpen(false)}
         className="flex-1 h-11 rounded-xl text-[0.875rem] font-medium text-[#1D1D1F] hover:bg-black/5"
@@ -171,20 +171,18 @@ export default function MunkalapForm({ onCreated }) {
       {trigger}
       {isMobile ? (
         <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="h-[85vh]">
-            <DrawerHeader className="px-5 pt-3 pb-2">
+          <DrawerContent className="h-[85vh] flex flex-col gap-0">
+            <DrawerHeader className="px-5 pt-3 pb-2 shrink-0">
               <DrawerTitle className="text-[1rem] font-semibold text-[#1D1D1F]">Új munkalap</DrawerTitle>
             </DrawerHeader>
-            <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-              {fields}
-              {footer}
-            </div>
+            {fields}
+            {footer}
           </DrawerContent>
         </Drawer>
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
-            <DialogHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA]">
+          <DialogContent className="sm:max-w-md p-0 gap-0 flex flex-col max-h-[88vh]">
+            <DialogHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA] shrink-0">
               <DialogTitle className="text-[1rem] font-semibold text-[#1D1D1F]">Új munkalap</DialogTitle>
             </DialogHeader>
             {fields}

@@ -176,7 +176,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
   if (isMobile) {
     return (
       <Drawer open={true} onOpenChange={(o) => !o && onClose()}>
-        <DrawerContent className="h-[90vh]">
+        <DrawerContent className="h-[90vh] flex flex-col gap-0">
           <DrawerHeader className="px-5 pt-3 pb-2 border-b border-[#E5E5EA]">
             <DrawerTitle className="text-[1rem] font-semibold text-[#1D1D1F] font-mono">{m.code}</DrawerTitle>
           </DrawerHeader>
@@ -188,7 +188,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
 
   return (
     <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-md p-0 flex flex-col">
+      <SheetContent className="w-full sm:max-w-md p-0 flex flex-col gap-0">
         <SheetHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA]">
           <SheetTitle className="text-[1rem] font-semibold text-[#1D1D1F] font-mono">{m.code}</SheetTitle>
         </SheetHeader>
