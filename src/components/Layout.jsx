@@ -43,7 +43,7 @@ export default function Layout() {
 
         <motion.nav {...fadeUp(0.05)} className="flex flex-col gap-1">
           <NavLink to="/" end className={navClass}>
-            <LayoutDashboard className="w-4 h-4 shrink-0" /> Csővezeték
+            <LayoutDashboard className="w-4 h-4 shrink-0" /> STEELA Cetli
           </NavLink>
           <NavLink to="/naptar" className={navClass}>
             <Calendar className="w-4 h-4 shrink-0" /> Naptár
