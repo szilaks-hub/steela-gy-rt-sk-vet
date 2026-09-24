@@ -6,18 +6,18 @@ import { OPERATIONS } from "@/lib/munkalapConfig";
 import Logo from "@/components/Logo";
 
 const navClass = ({ isActive }) =>
-  `flex items-center gap-2.5 h-9 px-3 rounded-lg text-[0.8125rem] font-medium transition-all duration-200 ${
-    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5 hover:translate-x-0.5"
+  `flex items-center gap-2.5 h-9 px-3 rounded-xl text-[0.8125rem] font-medium transition-all duration-200 ${
+    isActive ? "bg-[#FF9500]/15 text-[#FF9500] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]" : "text-[#1D1D1F] hover:bg-white/50 hover:translate-x-0.5"
   }`;
 
 const opClass = (active) =>
-  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] transition-all duration-200 ${
-    active ? "bg-[#1D1D1F] text-white" : "text-[#1D1D1F] hover:bg-black/5 hover:translate-x-0.5"
+  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-xl text-[0.8125rem] transition-all duration-200 ${
+    active ? "bg-[#1D1D1F] text-white shadow-sm" : "text-[#1D1D1F] hover:bg-white/50 hover:translate-x-0.5"
   }`;
 
 const subClass = ({ isActive }) =>
-  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] font-medium transition-all duration-200 ${
-    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5 hover:translate-x-0.5"
+  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-xl text-[0.8125rem] font-medium transition-all duration-200 ${
+    isActive ? "bg-[#FF9500]/15 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-white/50 hover:translate-x-0.5"
   }`;
 
 const fadeUp = (delay = 0) => ({
@@ -35,8 +35,19 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex h-screen w-full bg-[#F5F5F7]">
-      <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-[#E5E5EA] bg-white/60 backdrop-blur-xl py-4 px-3">
+    <div className="relative h-screen w-full overflow-hidden">
+      {/* Main frosted-glass panel */}
+      <div className="absolute inset-0 md:inset-3 md:rounded-[28px] overflow-hidden steela-glass-main">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+          <Logo variant="watermark" size={560} />
+        </div>
+        <div className="relative z-10 h-full md:pl-[252px]">
+          <Outlet />
+        </div>
+      </div>
+
+      {/* Floating glass sidebar pill */}
+      <aside className="hidden md:flex flex-col absolute left-3 top-3 bottom-3 w-60 z-20 steela-glass-side rounded-[28px] py-4 px-3">
         <motion.div {...fadeUp(0)} className="flex items-center gap-2.5 px-1 mb-5">
           <Logo variant="full" size={34} />
         </motion.div>
@@ -54,7 +65,7 @@ export default function Layout() {
           <div className="flex flex-col">
             <button
               onClick={() => setMunkatarsOpen((v) => !v)}
-              className="flex items-center gap-2.5 h-9 px-3 rounded-lg text-[0.8125rem] font-medium text-[#1D1D1F] hover:bg-black/5 transition-colors"
+              className="flex items-center gap-2.5 h-9 px-3 rounded-xl text-[0.8125rem] font-medium text-[#1D1D1F] hover:bg-white/50 transition-colors"
             >
               <Users className="w-4 h-4 shrink-0" /> Munkatársak
               <ChevronDown
@@ -70,7 +81,7 @@ export default function Layout() {
                   transition={{ duration: 0.25, ease: "easeInOut" }}
                   className="overflow-hidden"
                 >
-                  <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-[#E5E5EA] pl-2">
+                  <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-white/40 pl-2">
                     <NavLink to="/beosztasok" className={subClass}>
                       Beosztások
                     </NavLink>
@@ -111,15 +122,6 @@ export default function Layout() {
           <p className="text-[0.625rem] text-[#86868B] tracking-wide">Production made clear.</p>
         </motion.div>
       </aside>
-
-      <main className="flex-1 min-w-0 flex flex-col relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-          <Logo variant="watermark" size={560} />
-        </div>
-        <div className="relative z-10 flex-1 flex flex-col min-h-0">
-          <Outlet />
-        </div>
-      </main>
     </div>
   );
 }
