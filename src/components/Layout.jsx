@@ -1,22 +1,30 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Factory, LayoutDashboard, BarChart3, Calendar, Users, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LayoutDashboard, BarChart3, Calendar, Users, ChevronDown } from "lucide-react";
 import { OPERATIONS } from "@/lib/munkalapConfig";
+import Logo from "@/components/Logo";
 
 const navClass = ({ isActive }) =>
-  `flex items-center gap-2.5 h-9 px-3 rounded-lg text-[0.8125rem] font-medium transition-colors ${
-    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5"
+  `flex items-center gap-2.5 h-9 px-3 rounded-lg text-[0.8125rem] font-medium transition-all duration-200 ${
+    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5 hover:translate-x-0.5"
   }`;
 
 const opClass = (active) =>
-  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] transition-colors ${
-    active ? "bg-[#1D1D1F] text-white" : "text-[#1D1D1F] hover:bg-black/5"
+  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] transition-all duration-200 ${
+    active ? "bg-[#1D1D1F] text-white" : "text-[#1D1D1F] hover:bg-black/5 hover:translate-x-0.5"
   }`;
 
 const subClass = ({ isActive }) =>
-  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] font-medium transition-colors ${
-    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5"
+  `flex items-center gap-2 h-8 pl-2.5 pr-2 rounded-lg text-[0.8125rem] font-medium transition-all duration-200 ${
+    isActive ? "bg-[#FF9500]/10 text-[#FF9500]" : "text-[#1D1D1F] hover:bg-black/5 hover:translate-x-0.5"
   }`;
+
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.35, delay, ease: "easeOut" },
+});
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -29,17 +37,11 @@ export default function Layout() {
   return (
     <div className="flex h-screen w-full bg-[#F5F5F7]">
       <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-[#E5E5EA] bg-white/60 backdrop-blur-xl py-4 px-3">
-        <div className="flex items-center gap-2.5 px-2 mb-5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF9500] to-[#FFCC00] flex items-center justify-center text-white shadow-sm shrink-0">
-            <Factory className="w-5 h-5" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[0.875rem] font-semibold text-[#1D1D1F] leading-tight truncate">FlowWork</p>
-            <p className="text-[0.6875rem] text-[#86868B] leading-tight">Gyártáskövető</p>
-          </div>
-        </div>
+        <motion.div {...fadeUp(0)} className="flex items-center gap-2.5 px-1 mb-5">
+          <Logo variant="full" size={34} />
+        </motion.div>
 
-        <nav className="flex flex-col gap-1">
+        <motion.nav {...fadeUp(0.05)} className="flex flex-col gap-1">
           <NavLink to="/" end className={navClass}>
             <LayoutDashboard className="w-4 h-4 shrink-0" /> Csővezeték
           </NavLink>
@@ -56,26 +58,36 @@ export default function Layout() {
             >
               <Users className="w-4 h-4 shrink-0" /> Munkatársak
               <ChevronDown
-                className={`w-3.5 h-3.5 ml-auto text-[#86868B] transition-transform ${munkatarsOpen ? "rotate-180" : ""}`}
+                className={`w-3.5 h-3.5 ml-auto text-[#86868B] transition-transform duration-300 ${munkatarsOpen ? "rotate-180" : ""}`}
               />
             </button>
-            {munkatarsOpen && (
-              <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-[#E5E5EA] pl-2">
-                <NavLink to="/beosztasok" className={subClass}>
-                  Beosztások
-                </NavLink>
-                <NavLink to="/munkasok" className={subClass}>
-                  Munkatársak
-                </NavLink>
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {munkatarsOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-[#E5E5EA] pl-2">
+                    <NavLink to="/beosztasok" className={subClass}>
+                      Beosztások
+                    </NavLink>
+                    <NavLink to="/munkasok" className={subClass}>
+                      Munkatársak
+                    </NavLink>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </nav>
+        </motion.nav>
 
-        <p className="text-[0.625rem] uppercase tracking-wider text-[#86868B] font-semibold mt-5 mb-1.5 px-2.5">
+        <motion.p {...fadeUp(0.1)} className="text-[0.625rem] uppercase tracking-wider text-[#86868B] font-semibold mt-5 mb-1.5 px-2.5">
           Munkafolyamatok
-        </p>
-        <div className="flex flex-col gap-0.5">
+        </motion.p>
+        <motion.div {...fadeUp(0.12)} className="flex flex-col gap-0.5">
           <button
             onClick={() => navigate("/")}
             className={opClass(!currentOp)}
@@ -93,11 +105,20 @@ export default function Layout() {
               {o.label}
             </button>
           ))}
-        </div>
+        </motion.div>
+
+        <motion.div {...fadeUp(0.2)} className="mt-auto pt-4 px-2">
+          <p className="text-[0.625rem] text-[#86868B] tracking-wide">Production made clear.</p>
+        </motion.div>
       </aside>
 
-      <main className="flex-1 min-w-0 flex flex-col">
-        <Outlet />
+      <main className="flex-1 min-w-0 flex flex-col relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+          <Logo variant="watermark" size={560} />
+        </div>
+        <div className="relative z-10 flex-1 flex flex-col min-h-0">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
