@@ -109,7 +109,10 @@ export default function Home() {
         <button onClick={() => setShowArchived((v) => !v)} className={`hidden sm:inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full text-[0.8125rem] font-medium transition-colors shrink-0 ${showArchived ? "bg-[#86868B] text-white" : "bg-[#F5F5F7] text-[#86868B] hover:text-[#1D1D1F]"}`} title={showArchived ? "Aktív munkák" : "Archívum"}>
           <Archive className="w-4 h-4" /> {showArchived ? "Aktív" : "Archívum"}
         </button>
-        <MunkalapForm onCreated={load} />
+        <MunkalapForm onCreated={(created) => {
+          if (created) setMunkalapok((prev) => [created, ...prev]);
+          load();
+        }} />
       </header>
 
       {/* Összegző számok */}
