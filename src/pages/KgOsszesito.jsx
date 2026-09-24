@@ -49,7 +49,8 @@ export default function KgOsszesito() {
       .map((r) => {
         const ml = munkalapMap[r.key] || {};
         const eredeti = Number(ml.quantity_kg) || 0;
-        return { ...r, eredeti, korrigalt: eredeti + (r.plus - r.minus) };
+        const net = r.plus - r.minus;
+        return { ...r, net, eredeti, korrigalt: eredeti + net };
       })
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
   }, [filtered]);
