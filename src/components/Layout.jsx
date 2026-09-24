@@ -39,7 +39,7 @@ export default function Layout() {
       {/* Floating glass sidebar pill */}
       <aside className="hidden md:flex flex-col w-60 shrink-0 steela-glass-side rounded-[28px] py-4 px-3">
         <motion.div {...fadeUp(0)} className="flex items-center gap-2.5 px-1 mb-5">
-          <Logo variant="full" size={34} />
+          <Logo variant="full" size={46} />
         </motion.div>
 
         <motion.nav {...fadeUp(0.05)} className="flex flex-col gap-1">
