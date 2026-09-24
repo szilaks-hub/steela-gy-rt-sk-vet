@@ -31,6 +31,7 @@ export default function MunkalapForm({ onCreated }) {
   const [quantity, setQuantity] = useState("");
   const [felelos, setFelelos] = useState("");
   const [gyartasraMegy, setGyartasraMegy] = useState(false);
+  const [azonnalGyartasba, setAzonnalGyartasba] = useState(false);
   const [phaseDatum, setPhaseDatum] = useState("");
   const [gyartasiDatum, setGyartasiDatum] = useState("");
   const [kiszallitasiDatum, setKiszallitasiDatum] = useState("");
@@ -76,6 +77,7 @@ export default function MunkalapForm({ onCreated }) {
     setQuantity("");
     setFelelos("");
     setGyartasraMegy(false);
+    setAzonnalGyartasba(false);
     setPhaseDatum("");
     setGyartasiDatum("");
     setKiszallitasiDatum("");
@@ -119,6 +121,11 @@ export default function MunkalapForm({ onCreated }) {
         while ((existing || []).some((m) => m.code === `${code}-${String(n).padStart(2, "0")}`)) n++;
         code = `${code}-${String(n).padStart(2, "0")}`;
       }
+      const startStatus = azonnalGyartasba && gyartasraMegy ? "gyartas_folyamatban" : "terv_feldolgozas";
+      const startHistory = [{ stage: "terv_feldolgozas", at: new Date().toISOString(), note: "Munkalap létrehozva" }];
+      if (startStatus === "gyartas_folyamatban") {
+        startHistory.push({ stage: "gyartas_folyamatban", at: new Date().toISOString(), note: "Azonnal gyártásba küldve (gyár-jelzés nélkül)" });
+      }
       const created = await base44.entities.Munkalap.create({
         code,
         customer_name: customer.trim(),
@@ -126,17 +133,17 @@ export default function MunkalapForm({ onCreated }) {
         letrehozo_nev: letrehozo || undefined,
         operation,
         quantity_kg: quantity ? Number(quantity) : 0,
-        status: "terv_feldolgozas",
+        status: startStatus,
         accepted: false,
         documents: docUrls,
-        progress: progressFor("terv_feldolgozas"),
+        progress: progressFor(startStatus),
         description: description.trim(),
         felelos: felelos.trim(),
         gyartasra_megy: gyartasraMegy,
         phase_datum: !gyartasraMegy && phaseDatum ? phaseDatum : undefined,
         gyartasi_datum: gyartasraMegy && gyartasiDatum ? gyartasiDatum : undefined,
         kiszallitasi_datum: gyartasraMegy && kiszallitasiDatum ? kiszallitasiDatum : undefined,
-        stage_history: [{ stage: "terv_feldolgozas", at: new Date().toISOString(), note: "Munkalap létrehozva" }],
+        stage_history: startHistory,
       });
       logAudit({
         action: "create",
@@ -267,6 +274,19 @@ export default function MunkalapForm({ onCreated }) {
             {gyartasraMegy ? "(gyártható)" : "(még csak ajánlati szakasz)"}
           </span>
         </label>
+
+        {gyartasraMegy && (
+          <label className="flex items-center gap-2.5 cursor-pointer select-none rounded-xl bg-[#FF9500]/8 border border-[#FF9500]/20 px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={azonnalGyartasba}
+              onChange={(e) => setAzonnalGyartasba(e.target.checked)}
+              className="w-4 h-4 rounded accent-[#FF9500]"
+            />
+            <span className="text-[0.8125rem] text-[#1D1D1F] font-medium">Azonnal gyártásba (gyár-jelzés nélkül)</span>
+            <span className="text-[0.6875rem] text-[#86868B]">— irodából egyenesen a gyártásba</span>
+          </label>
+        )}
 
         {!gyartasraMegy ? (
           <div>
