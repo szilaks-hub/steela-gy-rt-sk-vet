@@ -12,6 +12,7 @@ import {
   formatDateTime,
 } from "@/lib/munkalapConfig";
 import { advanceMunkalap, acceptMunkalap } from "@/lib/munkalapActions";
+import { logAudit } from "@/lib/auditLog";
 import CommentSection from "@/components/CommentSection";
 import MunkalapEditForm from "@/components/MunkalapEditForm";
 import MunkalapFlow from "@/components/MunkalapFlow";
@@ -102,6 +103,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     setBusy(true);
     try {
       await base44.entities.Munkalap.update(m.id, { archived: !m.archived });
+      logAudit({ action: m.archived ? "restore" : "archive", munkalap_id: m.id, munkalap_code: m.code });
       toast({ title: m.archived ? "Visszaállítva" : "Archiválva" });
       onUpdated(null);
     } finally {
@@ -113,6 +115,7 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
     setBusy(true);
     try {
       await base44.entities.Munkalap.delete(m.id);
+      logAudit({ action: "delete", munkalap_id: m.id, munkalap_code: m.code });
       toast({ title: "Munkalap törölve" });
       onUpdated(null);
     } finally {

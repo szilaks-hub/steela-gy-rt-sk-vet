@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Paperclip, FileText, ExternalLink, Upload, X, Loader2 } from "lucide-react";
+import { logAudit } from "@/lib/auditLog";
 
 const docName = (url, i) => {
   try {
@@ -26,6 +27,7 @@ export default function MunkalapDocuments({ munkalap, onUpdated }) {
       const updated = await base44.entities.Munkalap.update(munkalap.id, {
         documents: [...docs, file_url],
       });
+      logAudit({ action: "document_upload", munkalap_id: munkalap.id, munkalap_code: munkalap.code, note: file.name });
       onUpdated?.(updated);
     } finally {
       setBusy(false);
@@ -38,6 +40,7 @@ export default function MunkalapDocuments({ munkalap, onUpdated }) {
       const updated = await base44.entities.Munkalap.update(munkalap.id, {
         documents: docs.filter((d) => d !== url),
       });
+      logAudit({ action: "document_remove", munkalap_id: munkalap.id, munkalap_code: munkalap.code });
       onUpdated?.(updated);
     } finally {
       setBusy(false);

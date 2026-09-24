@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Users, Plus, X, Check, UserMinus } from "lucide-react";
+import { logAudit } from "@/lib/auditLog";
 
 const statusColor = (s) =>
   s === "elerheto" ? "#34C759" : s === "foglalt" ? "#FF9500" : s === "szabadsagon" ? "#5B9BD5" : "#86868B";
@@ -42,7 +43,7 @@ export default function MunkalapMunkasok({ munkalap, munkasList, onUpdated }) {
               </span>
               <span className="text-[0.75rem] font-medium text-[#1D1D1F]">{mk.name}</span>
               <button
-                onClick={() => setMunkasok(assigned.filter((id) => id !== mk.id))}
+                onClick={() => { setMunkasok(assigned.filter((id) => id !== mk.id)); logAudit({ action: "unassign_worker", munkalap_id: munkalap.id, munkalap_code: munkalap.code, worker_id: mk.id, worker_name: mk.name }); }}
                 disabled={busy}
                 className="w-5 h-5 rounded-full hover:bg-red-500/10 text-[#86868B] hover:text-red-500 flex items-center justify-center disabled:opacity-50"
                 title="Eltávolítás"
@@ -80,6 +81,7 @@ export default function MunkalapMunkasok({ munkalap, munkasList, onUpdated }) {
                     key={mk.id}
                     onClick={() => {
                       setMunkasok([...assigned, mk.id]);
+                      logAudit({ action: "assign_worker", munkalap_id: munkalap.id, munkalap_code: munkalap.code, worker_id: mk.id, worker_name: mk.name });
                     }}
                     className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-[#F5F5F7] text-left"
                   >

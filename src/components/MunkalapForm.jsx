@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Upload, Loader2, X, FileText, User, Sparkles } from "lucide-react";
 import FelelosSelect from "@/components/FelelosSelect";
+import { logAudit } from "@/lib/auditLog";
 
 const sanitizePrefix = (s) =>
   (s || "")
@@ -136,6 +137,13 @@ export default function MunkalapForm({ onCreated }) {
         gyartasi_datum: gyartasraMegy && gyartasiDatum ? gyartasiDatum : undefined,
         kiszallitasi_datum: gyartasraMegy && kiszallitasiDatum ? kiszallitasiDatum : undefined,
         stage_history: [{ stage: "terv_feldolgozas", at: new Date().toISOString(), note: "Munkalap létrehozva" }],
+      });
+      logAudit({
+        action: "create",
+        munkalap_id: created.id,
+        munkalap_code: created.code,
+        quantity_kg: created.quantity_kg,
+        note: `${created.customer_name} — ${created.project_name}`,
       });
       reset();
       setOpen(false);

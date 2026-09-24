@@ -1,0 +1,70 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "actor_email": {
+      "type": "string",
+      "title": "Felhaszn\u00e1l\u00f3 e-mail"
+    },
+    "actor_name": {
+      "type": "string",
+      "title": "Felhaszn\u00e1l\u00f3 neve"
+    },
+    "action": {
+      "type": "string",
+      "title": "M\u0171velet",
+      "enum": [
+        "create",
+        "edit",
+        "advance",
+        "accept",
+        "assign_worker",
+        "unassign_worker",
+        "flag",
+        "unflag",
+        "archive",
+        "restore",
+        "delete",
+        "comment",
+        "document_upload",
+        "document_remove"
+      ]
+    },
+    "munkalap_id": {
+      "type": "string",
+      "title": "Munkalap ID"
+    },
+    "munkalap_code": {
+      "type": "string",
+      "title": "Munkalap k\u00f3d"
+    },
+    "from_status": {
+      "type": "string",
+      "title": "Kor\u00e1bbi st\u00e1tusz"
+    },
+    "to_status": {
+      "type": "string",
+      "title": "\u00daj st\u00e1tusz"
+    },
+    "quantity_kg": {
+      "type": "number",
+      "title": "Mennyis\u00e9g (kg)",
+      "default": 0
+    },
+    "worker_id": {
+      "type": "string",
+      "title": "Munk\u00e1s ID"
+    },
+    "worker_name": {
+      "type": "string",
+      "title": "Munk\u00e1s neve"
+    },
+    "note": {
+      "type": "string",
+      "title": "Megjegyz\u00e9s"
+    }
+  },
+  "required": [
+    "action"
+  ]
+}

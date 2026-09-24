@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Send, Loader2 } from "lucide-react";
+import { logAudit } from "@/lib/auditLog";
 
 export default function CommentSection({ munkalapId }) {
   const [comments, setComments] = useState([]);
@@ -32,6 +33,7 @@ export default function CommentSection({ munkalapId }) {
         text: text.trim(),
         author_name: author,
       });
+      logAudit({ action: "comment", munkalap_id: munkalapId, note: text.trim().slice(0, 140) });
       setText("");
       load();
     } finally {

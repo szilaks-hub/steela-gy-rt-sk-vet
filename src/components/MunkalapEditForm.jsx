@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Check } from "lucide-react";
 import FelelosSelect from "@/components/FelelosSelect";
+import { logAudit } from "@/lib/auditLog";
 
 export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
   const isMobile = useIsMobile();
@@ -50,6 +51,7 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
         description: description.trim(),
         munkasok,
       });
+      logAudit({ action: "edit", munkalap_id: m.id, munkalap_code: m.code, quantity_kg: quantity ? Number(quantity) : 0 });
       onSaved?.(updated);
     } catch (e) {
       setError("Hiba mentés közben: " + (e.message || "ismeretlen"));
