@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { ChevronDown } from "lucide-react";
 
-const norm = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-// Csak az előkészítésre és hegesztésre regisztrált munkatársak választhatók felelősnek
-const ROLE_RE = /elokeszt|hegeszt/;
-
 export default function FelelosSelect({ value, onChange, className }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,14 +10,8 @@ export default function FelelosSelect({ value, onChange, className }) {
     let active = true;
     (async () => {
       try {
-        const [munkasok, beosztasok] = await Promise.all([
-          base44.entities.Munkas.list("-created_date", 500),
-          base44.entities.Beosztas.list("-created_date", 500),
-        ]);
-        const roleOf = (id) => (beosztasok || []).find((b) => b.id === id)?.name || "";
-        let filtered = (munkasok || []).filter((mk) => ROLE_RE.test(norm(roleOf(mk.beosztas_id))));
-        if (filtered.length === 0) filtered = munkasok || [];
-        if (active) setOptions(filtered);
+        const munkasok = await base44.entities.Munkas.list("-created_date", 500);
+        if (active) setOptions(munkasok || []);
       } catch {
         if (active) setOptions([]);
       } finally {
