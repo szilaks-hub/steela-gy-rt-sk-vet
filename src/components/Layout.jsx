@@ -35,19 +35,9 @@ export default function Layout() {
   );
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      {/* Main frosted-glass panel */}
-      <div className="absolute inset-0 md:inset-3 md:rounded-[28px] overflow-hidden steela-glass-main">
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-          <Logo variant="watermark" size={560} />
-        </div>
-        <div className="relative z-10 h-full md:pl-[252px]">
-          <Outlet />
-        </div>
-      </div>
-
+    <div className="flex h-screen w-full overflow-hidden p-3 gap-3">
       {/* Floating glass sidebar pill */}
-      <aside className="hidden md:flex flex-col absolute left-3 top-3 bottom-3 w-60 z-20 steela-glass-side rounded-[28px] py-4 px-3">
+      <aside className="hidden md:flex flex-col w-60 shrink-0 steela-glass-side rounded-[28px] py-4 px-3">
         <motion.div {...fadeUp(0)} className="flex items-center gap-2.5 px-1 mb-5">
           <Logo variant="full" size={34} />
         </motion.div>
@@ -122,6 +112,16 @@ export default function Layout() {
           <p className="text-[0.625rem] text-[#86868B] tracking-wide">Production made clear.</p>
         </motion.div>
       </aside>
+
+      {/* Main frosted-glass panel */}
+      <main className="flex-1 min-w-0 relative overflow-hidden steela-glass-main rounded-[28px]">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+          <Logo variant="watermark" size={560} />
+        </div>
+        <div className="relative z-10 h-full">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }
