@@ -10,6 +10,14 @@
       "type": "string",
       "title": "Vev\u0151 megnevez\u00e9se"
     },
+    "project_name": {
+      "type": "string",
+      "title": "Projekt megnevez\u00e9se"
+    },
+    "letrehozo_nev": {
+      "type": "string",
+      "title": "L\u00e9trehoz\u00f3 (automatikus)"
+    },
     "operation": {
       "type": "string",
       "enum": [
@@ -107,6 +115,16 @@
       "format": "date",
       "title": "Terv feldolgoz\u00e1s hat\u00e1rideje (vev\u0151 k\u00e9r\u00e9s)"
     },
+    "gyartasra_megy": {
+      "type": "boolean",
+      "title": "Gy\u00e1rt\u00e1sra megy",
+      "default": false
+    },
+    "phase_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "Aj\u00e1nlati hat\u00e1rid\u0151"
+    },
     "gyartasi_datum": {
       "type": "string",
       "format": "date",
@@ -125,6 +143,7 @@
   "required": [
     "code",
     "customer_name",
+    "project_name",
     "operation"
   ]
 }
