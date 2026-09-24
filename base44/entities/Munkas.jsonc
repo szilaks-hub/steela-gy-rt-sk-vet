@@ -6,9 +6,9 @@
       "type": "string",
       "title": "N\u00e9v"
     },
-    "role": {
+    "beosztas_id": {
       "type": "string",
-      "title": "Beoszt\u00e1s / Szakter\u00fclet"
+      "title": "Beoszt\u00e1s"
     },
     "status": {
       "type": "string",

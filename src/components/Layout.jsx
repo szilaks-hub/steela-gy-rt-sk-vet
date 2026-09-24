@@ -61,11 +61,11 @@ export default function Layout() {
             </button>
             {munkatarsOpen && (
               <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-[#E5E5EA] pl-2">
-                <NavLink to="/munkasok" className={subClass}>
-                  Munkatársak
-                </NavLink>
                 <NavLink to="/beosztasok" className={subClass}>
                   Beosztások
+                </NavLink>
+                <NavLink to="/munkasok" className={subClass}>
+                  Munkatársak
                 </NavLink>
               </div>
             )}

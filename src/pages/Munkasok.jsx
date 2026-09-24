@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, Pencil, Trash2, Loader2, Phone, Briefcase } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Loader2, Phone, MapPin } from "lucide-react";
 
 const STATUS = [
   { value: "elerheto", label: "Elérhető", color: "#34C759" },
@@ -35,16 +35,21 @@ const statusMeta = (v) => STATUS.find((s) => s.value === v) || STATUS[0];
 export default function Munkasok() {
   const { toast } = useToast();
   const [munkasok, setMunkasok] = useState([]);
+  const [beosztasok, setBeosztasok] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // munkas or "new"
-  const [form, setForm] = useState({ name: "", role: "", status: "elerheto", phone: "" });
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ name: "", beosztas_id: "", status: "elerheto", phone: "" });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.Munkas.list("-created_date", 500);
-      setMunkasok(list);
+      const [ms, bs] = await Promise.all([
+        base44.entities.Munkas.list("-created_date", 500),
+        base44.entities.Beosztas.list("-created_date", 500),
+      ]);
+      setMunkasok(ms);
+      setBeosztasok(bs);
     } finally {
       setLoading(false);
     }
@@ -54,13 +59,15 @@ export default function Munkasok() {
     load();
   }, []);
 
+  const beosztasMeta = (id) => beosztasok.find((b) => b.id === id);
+
   const openNew = () => {
-    setForm({ name: "", role: "", status: "elerheto", phone: "" });
+    setForm({ name: "", beosztas_id: "", status: "elerheto", phone: "" });
     setEditing("new");
   };
 
   const openEdit = (m) => {
-    setForm({ name: m.name || "", role: m.role || "", status: m.status || "elerheto", phone: m.phone || "" });
+    setForm({ name: m.name || "", beosztas_id: m.beosztas_id || "", status: m.status || "elerheto", phone: m.phone || "" });
     setEditing(m);
   };
 
@@ -68,21 +75,17 @@ export default function Munkasok() {
     if (!form.name.trim()) return;
     setSaving(true);
     try {
+      const payload = {
+        name: form.name.trim(),
+        beosztas_id: form.beosztas_id,
+        status: form.status,
+        phone: form.phone.trim(),
+      };
       if (editing === "new") {
-        await base44.entities.Munkas.create({
-          name: form.name.trim(),
-          role: form.role.trim(),
-          status: form.status,
-          phone: form.phone.trim(),
-        });
+        await base44.entities.Munkas.create(payload);
         toast({ title: "Munkatárs hozzáadva" });
       } else {
-        await base44.entities.Munkas.update(editing.id, {
-          name: form.name.trim(),
-          role: form.role.trim(),
-          status: form.status,
-          phone: form.phone.trim(),
-        });
+        await base44.entities.Munkas.update(editing.id, payload);
         toast({ title: "Munkatárs frissítve" });
       }
       setEditing(null);
@@ -107,7 +110,7 @@ export default function Munkasok() {
           </span>
           <div>
             <h1 className="text-[1rem] font-semibold text-[#1D1D1F] leading-none">Munkatársak</h1>
-            <p className="text-[0.75rem] text-[#86868B] mt-0.5">Státuszkezelés és ráosztás</p>
+            <p className="text-[0.75rem] text-[#86868B] mt-0.5">Státuszkezelés és beosztás</p>
           </div>
         </div>
         <button
@@ -132,6 +135,7 @@ export default function Munkasok() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {munkasok.map((m) => {
               const sm = statusMeta(m.status);
+              const b = beosztasMeta(m.beosztas_id);
               return (
                 <div key={m.id} className="rounded-2xl border border-[#EDEDF0] bg-white p-4 flex flex-col">
                   <div className="flex items-start justify-between gap-2">
@@ -169,16 +173,11 @@ export default function Munkasok() {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Munkatárs törlése</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Biztosan törlöd: {m.name}?
-                            </AlertDialogDescription>
+                            <AlertDialogDescription>Biztosan törlöd: {m.name}?</AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Mégse</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => remove(m)}
-                              className="bg-red-500 hover:bg-red-500/90 text-white"
-                            >
+                            <AlertDialogAction onClick={() => remove(m)} className="bg-red-500 hover:bg-red-500/90 text-white">
                               Törlés
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -186,14 +185,22 @@ export default function Munkasok() {
                       </AlertDialog>
                     </div>
                   </div>
-                  <div className="mt-3 space-y-1.5 text-[0.8125rem] text-[#86868B]">
-                    {m.role && (
-                      <p className="inline-flex items-center gap-1.5">
-                        <Briefcase className="w-3.5 h-3.5" /> {m.role}
-                      </p>
+                  <div className="mt-3 space-y-1.5 text-[0.8125rem]">
+                    {b ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-3 h-3 rounded-md shrink-0" style={{ backgroundColor: b.color }} />
+                        <span className="text-[#1D1D1F] font-medium truncate">{b.name}</span>
+                        {b.helyzet && (
+                          <span className="inline-flex items-center gap-0.5 text-[#86868B] truncate">
+                            <MapPin className="w-3 h-3" /> {b.helyzet}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[#86868B] italic">Nincs beosztás</p>
                     )}
                     {m.phone && (
-                      <p className="inline-flex items-center gap-1.5">
+                      <p className="inline-flex items-center gap-1.5 text-[#86868B]">
                         <Phone className="w-3.5 h-3.5" /> {m.phone}
                       </p>
                     )}
@@ -223,13 +230,20 @@ export default function Munkasok() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Beosztás / Szakterület</Label>
-              <Input
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-                placeholder="Pl. Hegesztő"
-                className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
-              />
+              <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Beosztás</Label>
+              <Select value={form.beosztas_id} onValueChange={(v) => setForm({ ...form, beosztas_id: v })}>
+                <SelectTrigger className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]">
+                  <SelectValue placeholder="Válassz beosztást" />
+                </SelectTrigger>
+                <SelectContent>
+                  {beosztasok.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {beosztasok.length === 0 && (
+                <p className="text-[0.75rem] text-[#86868B]">Előbb hozz létre beosztást a Beosztások oldalon.</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Státusz</Label>
@@ -239,9 +253,7 @@ export default function Munkasok() {
                 </SelectTrigger>
                 <SelectContent>
                   {STATUS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -257,10 +269,7 @@ export default function Munkasok() {
             </div>
           </div>
           <div className="px-5 pb-5 pt-1 flex gap-2.5 shrink-0">
-            <button
-              onClick={() => setEditing(null)}
-              className="flex-1 h-11 rounded-xl text-[0.875rem] font-medium text-[#1D1D1F] hover:bg-black/5"
-            >
+            <button onClick={() => setEditing(null)} className="flex-1 h-11 rounded-xl text-[0.875rem] font-medium text-[#1D1D1F] hover:bg-black/5">
               Mégse
             </button>
             <button

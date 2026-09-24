@@ -1,0 +1,26 @@
+{
+  "name": "Beosztas",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Beoszt\u00e1s neve"
+    },
+    "description": {
+      "type": "string",
+      "title": "Le\u00edr\u00e1s (mit takar a beoszt\u00e1s)"
+    },
+    "color": {
+      "type": "string",
+      "title": "Sz\u00edn",
+      "default": "#FF9500"
+    },
+    "helyzet": {
+      "type": "string",
+      "title": "Telepen bel\u00fcli helyzet"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
