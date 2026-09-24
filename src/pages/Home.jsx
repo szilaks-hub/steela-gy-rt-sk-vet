@@ -67,6 +67,9 @@ export default function Home() {
 
   const byStage = (stage) => filtered.filter((m) => m.status === stage);
   const countSummary = (s) => filtered.filter((m) => m.status === s.key || (s.extra || []).includes(m.status)).length;
+  const kgSummary = (s) => filtered
+    .filter((m) => m.status === s.key || (s.extra || []).includes(m.status))
+    .reduce((sum, m) => sum + (Number(m.quantity_kg) || 0), 0);
 
   const toggleFlag = async (m) => {
     await base44.entities.Munkalap.update(m.id, { flagged: !m.flagged });
@@ -117,6 +120,7 @@ export default function Home() {
             <div className="min-w-0">
               <p className="text-[1.5rem] font-semibold text-[#1D1D1F] leading-none">{loading ? "—" : countSummary(s)}</p>
               <p className="text-[0.75rem] text-[#86868B] mt-1 truncate">{s.label}</p>
+              <p className="text-[0.6875rem] font-medium text-[#FF9500] mt-0.5 truncate">{loading ? "" : `${kgSummary(s).toLocaleString("hu-HU")} kg`}</p>
             </div>
           </div>
         ))}
