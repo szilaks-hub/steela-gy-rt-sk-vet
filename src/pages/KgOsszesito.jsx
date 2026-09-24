@@ -50,7 +50,8 @@ export default function KgOsszesito() {
         const ml = munkalapMap[r.key] || {};
         const eredeti = Number(ml.quantity_kg) || 0;
         const net = r.plus - r.minus;
-        return { ...r, net, eredeti, korrigalt: eredeti + net };
+        const arany = eredeti > 0 ? (net / eredeti) * 100 : net > 0 ? 100 : 0;
+        return { ...r, net, eredeti, korrigalt: eredeti + net, arany };
       })
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
   }, [filtered]);
@@ -60,9 +61,9 @@ export default function KgOsszesito() {
   const totalNet = totalPlus - totalMinus;
   const totalEredeti = rows.reduce((s, r) => s + r.eredeti, 0);
   const totalKorrigalt = rows.reduce((s, r) => s + r.korrigalt, 0);
-  const absSum = rows.reduce((s, r) => s + Math.abs(r.net), 0) || 1;
+  const totalArany = totalEredeti > 0 ? (totalNet / totalEredeti) * 100 : totalNet > 0 ? 100 : 0;
 
-  const pct = (v) => `${((Math.abs(v) / absSum) * 100).toFixed(1).replace(".", ",")}%`;
+  const fmtPct = (v) => `${v.toFixed(1).replace(".", ",")}%`;
 
   return (
     <div className="flex flex-col h-full">
@@ -142,9 +143,9 @@ export default function KgOsszesito() {
                         <td className="px-4 py-2.5 text-right">
                           <div className="inline-flex items-center gap-2">
                             <div className="w-16 h-1.5 rounded-full bg-[#E5E5EA] overflow-hidden">
-                              <div className="h-full rounded-full bg-[#FF9500]" style={{ width: `${(Math.abs(r.net) / absSum) * 100}%` }} />
+                              <div className="h-full rounded-full bg-[#FF9500]" style={{ width: `${Math.min(Math.abs(r.arany), 100)}%` }} />
                             </div>
-                            <span className="text-[#86868B] tabular-nums w-12 text-right">{pct(r.net)}</span>
+                            <span className="text-[#86868B] tabular-nums w-14 text-right">{fmtPct(r.arany)}</span>
                           </div>
                         </td>
                       </tr>
@@ -162,7 +163,7 @@ export default function KgOsszesito() {
                         <td className="px-4 py-3 text-right font-semibold text-[#FF6961]">{totalMinus.toLocaleString("hu-HU")}</td>
                         <td className="px-4 py-3 text-right font-semibold">{totalNet.toLocaleString("hu-HU")}</td>
                         <td className="px-4 py-3 text-right font-semibold text-[#FF9500]">{totalKorrigalt.toLocaleString("hu-HU")}</td>
-                        <td className="px-4 py-3 text-right font-semibold">100%</td>
+                        <td className="px-4 py-3 text-right font-semibold">{fmtPct(totalArany)}</td>
                       </tr>
                     </tfoot>
                   )}
