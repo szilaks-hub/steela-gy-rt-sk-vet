@@ -1,6 +1,7 @@
 import React from "react";
 import { MessageSquare, Paperclip, Calendar, Flag, Clock, AlertCircle, Zap } from "lucide-react";
-import { operationLabel, operationColor, stageMeta, formatDate, deadlineStatus } from "@/lib/munkalapConfig";
+import { operationLabel, operationColor, stageMeta, formatDate, deadlineStatus, staleInfo } from "@/lib/munkalapConfig";
+import { BellRing } from "lucide-react";
 
 export default function MunkalapCard({ munkalap, onOpen, commentCount, onFlag }) {
   const m = munkalap;
@@ -13,13 +14,14 @@ export default function MunkalapCard({ munkalap, onOpen, commentCount, onFlag })
   const hasSurgo = m.surgo_allapot === "pending";
   const isMegszakitva = m.status === "megszakitva";
   const isLezarva = m.status === "lezarva";
+  const stale = staleInfo(m);
 
   return (
     <div
       onClick={() => onOpen(m)}
-      className="group bg-white rounded-2xl border border-[#E5E5EA] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden"
+      className={`group bg-white rounded-2xl border p-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all cursor-pointer relative overflow-hidden ${stale ? "border-[#FF9500] steela-stale-flash" : "border-[#E5E5EA]"}`}
     >
-      <span className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: stage.color }} />
+      <span className="absolute left-0 top-0 bottom-0 w-1.5" style={{ backgroundColor: stale ? "#FF6B35" : stage.color }} />
 
       <div className="flex items-start justify-between gap-2">
         <span className="font-mono text-[0.8125rem] font-semibold text-[#1D1D1F] tracking-tight">{m.code}</span>
@@ -59,6 +61,15 @@ export default function MunkalapCard({ munkalap, onOpen, commentCount, onFlag })
         <p className="mt-2 text-[0.6875rem] text-[#86868B]">
           Felelős: <span className="text-[#1D1D1F] font-medium">{m.felelos}</span>
         </p>
+      )}
+
+      {stale && (
+        <div className="mt-2.5 rounded-lg bg-[#FF9500]/12 border border-[#FF9500]/45 px-2.5 py-1.5 flex items-center gap-1.5">
+          <BellRing className="w-3.5 h-3.5 text-[#FF6B35] shrink-0 animate-pulse" />
+          <span className="text-[0.6875rem] font-semibold text-[#FF6B35]">
+            {m.status === "munkakeres" ? "VÁLASZ NÉLKÜL" : "VEVŐI DÖNTÉSRE VÁR"} · {stale.hours} órája
+          </span>
+        </div>
       )}
 
       {hasSurgo && (

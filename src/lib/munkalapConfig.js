@@ -103,6 +103,26 @@ export const deadlineStatus = (d) => {
   return { label: `${diff} nap`, color: "#34C759", diff };
 };
 
+export const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24 óra
+
+export const staleInfo = (munkalap) => {
+  const status = munkalap.status;
+  let since = null;
+  if (status === "munkakeres") {
+    since = munkalap.created_date ? new Date(munkalap.created_date).getTime() : null;
+  } else if (status === "vevoi_dontes") {
+    const at = stageEntryAt(munkalap, "vevoi_dontes");
+    since = at ? new Date(at).getTime() : null;
+  } else {
+    return null;
+  }
+  if (since == null) return null;
+  const ms = Date.now() - since;
+  if (ms < STALE_THRESHOLD_MS) return null;
+  const hours = Math.floor(ms / 3600000);
+  return { ms, hours, stale: true };
+};
+
 export const stageEntryAt = (munkalap, stage) => {
   const history = Array.isArray(munkalap.stage_history) ? munkalap.stage_history : [];
   const h = history.find((e) => e.stage === stage);

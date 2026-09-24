@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { OPERATIONS, STAGES, stageMeta } from "@/lib/munkalapConfig";
+import { OPERATIONS, STAGES, stageMeta, staleInfo } from "@/lib/munkalapConfig";
 import { logAudit } from "@/lib/auditLog";
 import MunkalapCard from "@/components/MunkalapCard";
 import MunkalapForm from "@/components/MunkalapForm";
@@ -9,7 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Factory, Archive, FileText, Wrench, MessageSquare, Truck } from "lucide-react";
+import { Search, Factory, Archive, FileText, Wrench, MessageSquare, Truck, BellRing } from "lucide-react";
 
 const SUMMARY = [
   { key: "munkakeres", label: "Új kérés", Icon: FileText, color: "#F5C84B" },
@@ -61,8 +61,25 @@ export default function Home() {
         const matchOp = opFilter === "all" || m.operation === opFilter;
         return matchArchive && matchSearch && matchOp;
       })
-      .sort((a, b) => (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0)),
+      .sort((a, b) => {
+        const f = (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0);
+        if (f !== 0) return f;
+        return (staleInfo(b) ? 1 : 0) - (staleInfo(a) ? 1 : 0);
+      }),
     [munkalapok, search, opFilter, showArchived]
+  );
+
+  const staleCount = useMemo(
+    () => filtered.filter((m) => staleInfo(m)).length,
+    [filtered]
+  );
+  const staleKeresCount = useMemo(
+    () => filtered.filter((m) => m.status === "munkakeres" && staleInfo(m)).length,
+    [filtered]
+  );
+  const staleVevoCount = useMemo(
+    () => filtered.filter((m) => m.status === "vevoi_dontes" && staleInfo(m)).length,
+    [filtered]
   );
 
   const byStage = (stage) => filtered.filter((m) => m.status === stage);
@@ -130,6 +147,17 @@ export default function Home() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden">
+        {!loading && staleCount > 0 && (
+          <div className="mx-4 md:mx-6 mt-3 rounded-2xl border border-[#FF9500]/45 bg-[#FF9500]/10 px-4 py-2.5 flex items-center gap-2.5 shrink-0">
+            <BellRing className="w-4 h-4 text-[#FF6B35] shrink-0 animate-pulse" />
+            <p className="text-[0.8125rem] text-[#1D1D1F]">
+              <span className="font-semibold text-[#FF6B35]">{staleCount} munka</span> vár válaszra 24 óránál tovább
+              {staleKeresCount > 0 && <span className="text-[#86868B]"> · {staleKeresCount} munkakérés</span>}
+              {staleVevoCount > 0 && <span className="text-[#86868B]"> · {staleVevoCount} vevői döntés</span>}
+              <span className="text-[#86868B]"> — előre sorolva, ne feledd!</span>
+            </p>
+          </div>
+        )}
         {!isMobile && (
           <>
             <div className="flex gap-2 px-4 md:px-6 py-3 border-b border-[#E5E5EA] bg-white/40 overflow-x-auto no-scrollbar shrink-0">
