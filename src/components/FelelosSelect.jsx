@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 const norm = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 // Csak az előkészítésre és hegesztésre regisztrált munkatársak választhatók felelősnek
@@ -34,35 +33,26 @@ export default function FelelosSelect({ value, onChange, className }) {
     };
   }, []);
 
-  const items = useMemo(() => {
-    const list = (options || []).map((o) => ({ id: o.id, name: o.name }));
-    if (value && !list.find((o) => o.name === value)) {
-      list.unshift({ id: "_current", name: value });
-    }
-    return list;
-  }, [options, value]);
-
   return (
-    <Select value={value || undefined} onValueChange={onChange}>
-      <SelectTrigger className={className}>
-        {loading && !value ? (
-          <span className="flex items-center gap-2 text-[#86868B]">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" /> betöltés…
-          </span>
-        ) : (
-          <SelectValue placeholder="Válassz munkatársat" />
-        )}
-      </SelectTrigger>
-      <SelectContent>
-        {items.length === 0 && (
-          <p className="px-3 py-2 text-[0.8125rem] text-[#86868B]">Nincs választható munkatárs.</p>
-        )}
-        {items.map((o) => (
-          <SelectItem key={o.id} value={o.name}>
+    <div className="relative">
+      <select
+        value={value || ""}
+        onChange={(e) => onChange?.(e.target.value)}
+        disabled={loading}
+        className={`w-full px-3 pr-9 appearance-none cursor-pointer disabled:opacity-60 ${
+          className || "h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]"
+        }`}
+      >
+        <option value="" disabled>
+          {loading ? "betöltés…" : "Válassz munkatársat"}
+        </option>
+        {options.map((o) => (
+          <option key={o.id} value={o.name}>
             {o.name}
-          </SelectItem>
+          </option>
         ))}
-      </SelectContent>
-    </Select>
+      </select>
+      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#86868B]" />
+    </div>
   );
 }
