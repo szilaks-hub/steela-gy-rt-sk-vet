@@ -6,6 +6,11 @@
       "type": "string",
       "title": "N\u00e9v"
     },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "E-mail"
+    },
     "beosztas_id": {
       "type": "string",
       "title": "Beoszt\u00e1s"

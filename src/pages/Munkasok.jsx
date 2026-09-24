@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus, Pencil, Trash2, Loader2, Phone, MapPin } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, Loader2, Phone, MapPin, Mail } from "lucide-react";
 
 const STATUS = [
   { value: "elerheto", label: "Elérhető", color: "#34C759" },
@@ -38,7 +38,7 @@ export default function Munkasok() {
   const [beosztasok, setBeosztasok] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: "", beosztas_id: "", status: "elerheto", phone: "" });
+  const [form, setForm] = useState({ name: "", email: "", beosztas_id: "", status: "elerheto", phone: "" });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -62,12 +62,12 @@ export default function Munkasok() {
   const beosztasMeta = (id) => beosztasok.find((b) => b.id === id);
 
   const openNew = () => {
-    setForm({ name: "", beosztas_id: "", status: "elerheto", phone: "" });
+    setForm({ name: "", email: "", beosztas_id: "", status: "elerheto", phone: "" });
     setEditing("new");
   };
 
   const openEdit = (m) => {
-    setForm({ name: m.name || "", beosztas_id: m.beosztas_id || "", status: m.status || "elerheto", phone: m.phone || "" });
+    setForm({ name: m.name || "", email: m.email || "", beosztas_id: m.beosztas_id || "", status: m.status || "elerheto", phone: m.phone || "" });
     setEditing(m);
   };
 
@@ -77,6 +77,7 @@ export default function Munkasok() {
     try {
       const payload = {
         name: form.name.trim(),
+        email: form.email.trim(),
         beosztas_id: form.beosztas_id,
         status: form.status,
         phone: form.phone.trim(),
@@ -199,6 +200,11 @@ export default function Munkasok() {
                     ) : (
                       <p className="text-[#86868B] italic">Nincs beosztás</p>
                     )}
+                    {m.email && (
+                      <p className="inline-flex items-center gap-1.5 text-[#86868B] truncate">
+                        <Mail className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{m.email}</span>
+                      </p>
+                    )}
                     {m.phone && (
                       <p className="inline-flex items-center gap-1.5 text-[#86868B]">
                         <Phone className="w-3.5 h-3.5" /> {m.phone}
@@ -226,6 +232,16 @@ export default function Munkasok() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Pl. Kovács János"
+                className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">E-mail</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="pl. munkatars@ceg.hu"
                 className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
               />
             </div>
