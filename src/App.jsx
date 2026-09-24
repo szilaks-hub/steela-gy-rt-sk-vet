@@ -13,6 +13,7 @@ import Dashboard from '@/pages/Dashboard';
 import Naptar from '@/pages/Naptar';
 import Munkasok from '@/pages/Munkasok';
 import Beosztasok from '@/pages/Beosztasok';
+import KgOsszesito from '@/pages/KgOsszesito';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -55,6 +56,7 @@ const AuthenticatedApp = () => {
           <Route path="/munkasok" element={<Munkasok />} />
           <Route path="/beosztasok" element={<Beosztasok />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/kg-osszesito" element={<KgOsszesito />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

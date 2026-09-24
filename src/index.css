@@ -133,6 +133,22 @@
   }
 }
 
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; background-image: none !important; }
+  aside { display: none !important; }
+  main {
+    position: static !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    overflow: visible !important;
+  }
+  main > div:first-child { display: none !important; }
+  table { font-size: 11px !important; }
+  .rounded-2xl { border-radius: 6px !important; }
+}
+
 @layer utilities {
   @keyframes steel-spin-slow {
     from { transform: rotate(0deg); }

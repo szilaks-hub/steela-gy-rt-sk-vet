@@ -31,6 +31,7 @@ import MunkalapEditForm from "@/components/MunkalapEditForm";
 import MunkalapTimeline from "@/components/MunkalapTimeline";
 import MunkalapMunkasok from "@/components/MunkalapMunkasok";
 import MunkalapDocuments from "@/components/MunkalapDocuments";
+import KgModositasPanel from "@/components/KgModositasPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -455,6 +456,10 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
             ))}
           </div>
         </div>
+      )}
+
+      {isLezarva && (
+        <KgModositasPanel munkalap={m} />
       )}
 
       {/* Sürgősségi szakasz */}

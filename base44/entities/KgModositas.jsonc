@@ -1,0 +1,46 @@
+{
+  "name": "KgModositas",
+  "type": "object",
+  "properties": {
+    "munkalap_id": {
+      "type": "string",
+      "title": "Munkalap ID"
+    },
+    "munkalap_code": {
+      "type": "string",
+      "title": "Munkalap k\u00f3d"
+    },
+    "customer_name": {
+      "type": "string",
+      "title": "Vev\u0151 megnevez\u00e9se"
+    },
+    "irany": {
+      "type": "string",
+      "enum": [
+        "plus",
+        "minus"
+      ],
+      "title": "Ir\u00e1ny (+/\u2212)",
+      "default": "plus"
+    },
+    "mennyiseg_kg": {
+      "type": "number",
+      "title": "Mennyis\u00e9g (kg)",
+      "default": 0
+    },
+    "note": {
+      "type": "string",
+      "title": "Megjegyz\u00e9s"
+    },
+    "datum": {
+      "type": "string",
+      "format": "date",
+      "title": "K\u00f6nyvel\u00e9s d\u00e1tuma"
+    }
+  },
+  "required": [
+    "munkalap_id",
+    "irany",
+    "mennyiseg_kg"
+  ]
+}
