@@ -50,18 +50,18 @@ export default function KgOsszesito() {
         const ml = munkalapMap[r.key] || {};
         const eredeti = Number(ml.quantity_kg) || 0;
         const net = r.plus - r.minus;
-        const arany = eredeti > 0 ? (net / eredeti) * 100 : net > 0 ? 100 : 0;
+        const arany = eredeti > 0 ? (net / eredeti) * 100 : 0;
         return { ...r, net, eredeti, korrigalt: eredeti + net, arany };
       })
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
-  }, [filtered]);
+  }, [filtered, munkalapMap]);
 
   const totalPlus = rows.reduce((s, r) => s + r.plus, 0);
   const totalMinus = rows.reduce((s, r) => s + r.minus, 0);
   const totalNet = totalPlus - totalMinus;
   const totalEredeti = rows.reduce((s, r) => s + r.eredeti, 0);
   const totalKorrigalt = rows.reduce((s, r) => s + r.korrigalt, 0);
-  const totalArany = totalEredeti > 0 ? (totalNet / totalEredeti) * 100 : totalNet > 0 ? 100 : 0;
+  const totalArany = totalEredeti > 0 ? (totalNet / totalEredeti) * 100 : 0;
 
   const fmtPct = (v) => `${v.toFixed(1).replace(".", ",")}%`;
 
