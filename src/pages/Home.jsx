@@ -145,12 +145,12 @@ export default function Home() {
             </div>
             <div className="flex-1 overflow-auto p-4 md:p-6">
               {loading ? spinner : stageTab === "osszes" ? (
-                <div className="flex gap-4 min-w-max h-full">
+                <div className="flex gap-4 h-full w-full">
                   {STAGES.filter((s) => s.value !== "megszakitva").map((stage) => {
                     const items = byStage(stage.value);
                     const Icon = stage.icon;
                     return (
-                      <div key={stage.value} className="flex-1 min-w-[260px] flex flex-col">
+                      <div key={stage.value} className="flex-1 min-w-[200px] flex flex-col">
                         <div className="flex items-center justify-between px-2 mb-3">
                           <div className="flex items-center gap-2">
                             <span className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: stage.color + "1A", color: stage.color }}><Icon className="w-4 h-4" /></span>
