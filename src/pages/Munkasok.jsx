@@ -75,7 +75,7 @@ export default function Munkasok() {
           status: form.status,
           phone: form.phone.trim(),
         });
-        toast({ title: "Munkás hozzáadva" });
+        toast({ title: "Munkatárs hozzáadva" });
       } else {
         await base44.entities.Munkas.update(editing.id, {
           name: form.name.trim(),
@@ -83,7 +83,7 @@ export default function Munkasok() {
           status: form.status,
           phone: form.phone.trim(),
         });
-        toast({ title: "Munkás frissítve" });
+        toast({ title: "Munkatárs frissítve" });
       }
       setEditing(null);
       load();
@@ -94,7 +94,7 @@ export default function Munkasok() {
 
   const remove = async (m) => {
     await base44.entities.Munkas.delete(m.id);
-    toast({ title: "Munkás törölve" });
+    toast({ title: "Munkatárs törölve" });
     load();
   };
 
@@ -106,7 +106,7 @@ export default function Munkasok() {
             <Users className="w-5 h-5" />
           </span>
           <div>
-            <h1 className="text-[1rem] font-semibold text-[#1D1D1F] leading-none">Munkások</h1>
+            <h1 className="text-[1rem] font-semibold text-[#1D1D1F] leading-none">Munkatársak</h1>
             <p className="text-[0.75rem] text-[#86868B] mt-0.5">Státuszkezelés és ráosztás</p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function Munkasok() {
           onClick={openNew}
           className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-[#1D1D1F] text-white text-[0.875rem] font-medium hover:bg-[#1D1D1F]/90 transition-colors"
         >
-          <Plus className="w-4 h-4" /> Új munkás
+          <Plus className="w-4 h-4" /> Új munkatárs
         </button>
       </header>
 
@@ -126,7 +126,7 @@ export default function Munkasok() {
         ) : munkasok.length === 0 ? (
           <div className="text-center text-[#86868B] py-24">
             <Users className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            <p className="text-[0.875rem]">Még nincs munkás. Adj hozzá egyet a fenti gombbal.</p>
+            <p className="text-[0.875rem]">Még nincs munkatárs. Adj hozzá egyet a fenti gombbal.</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -168,7 +168,7 @@ export default function Munkasok() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Munkás törlése</AlertDialogTitle>
+                            <AlertDialogTitle>Munkatárs törlése</AlertDialogTitle>
                             <AlertDialogDescription>
                               Biztosan törlöd: {m.name}?
                             </AlertDialogDescription>
@@ -209,7 +209,7 @@ export default function Munkasok() {
         <DialogContent className="sm:max-w-md p-0 gap-0 flex flex-col max-h-[90vh]">
           <DialogHeader className="px-5 pt-5 pb-3 border-b border-[#E5E5EA] shrink-0">
             <DialogTitle className="text-[1rem] font-semibold text-[#1D1D1F]">
-              {editing === "new" ? "Új munkás" : "Munkás szerkesztése"}
+              {editing === "new" ? "Új munkatárs" : "Munkatárs szerkesztése"}
             </DialogTitle>
           </DialogHeader>
           <div className="px-5 py-4 space-y-4 overflow-y-auto">
