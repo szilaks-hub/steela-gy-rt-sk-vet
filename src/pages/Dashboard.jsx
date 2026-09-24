@@ -37,7 +37,7 @@ export default function Dashboard() {
   const stats = [
     { label: "Összes munkalap", value: count(() => true), Icon: ClipboardList, color: "#1D1D1F" },
     { label: "Gyártásban", value: count((m) => m.status === "gyartas_folyamatban"), Icon: Factory, color: "#FF9500" },
-    { label: "Elfogadásra vár", value: count((m) => m.status === "elfogadasra_var" && !m.accepted), Icon: CheckCircle2, color: "#FFCC00" },
+    { label: "Függő munkák", value: count((m) => m.status === "elfogadasra_var" && !m.accepted), Icon: CheckCircle2, color: "#FFCC00" },
     { label: "Kész", value: count((m) => m.status === "felrakva_kesz"), Icon: PackageCheck, color: "#34C759" },
   ];
 

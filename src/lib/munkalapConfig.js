@@ -1,4 +1,4 @@
-import { FileText, CheckCircle2, Factory, Truck, PackageCheck } from "lucide-react";
+import { FileText, CheckCircle2, Factory, Truck, PackageCheck, BadgeCheck } from "lucide-react";
 
 export const OPERATIONS = [
   { value: "egyengetes", label: "Egyengetés", color: "#FF9500" },
@@ -11,15 +11,17 @@ export const OPERATIONS = [
 export const OPERATION_COLORS = Object.fromEntries(OPERATIONS.map((o) => [o.value, o.color]));
 
 export const STAGES = [
-  { value: "terv_feldolgozas", label: "Terv feldolgozás", short: "Terv", icon: FileText, color: "#86868B" },
-  { value: "elfogadasra_var", label: "Elfogadásra vár", short: "Elfogadás", icon: CheckCircle2, color: "#FFCC00" },
+  { value: "terv_feldolgozas", label: "Gyártásból jelzésre vár", short: "Jelzésre vár", icon: FileText, color: "#86868B" },
+  { value: "vevo_visszaigazolta", label: "Vevő visszaigazolta", short: "Visszaigazolta", icon: BadgeCheck, color: "#5B9BD5" },
+  { value: "elfogadasra_var", label: "Függő munkák", short: "Függő", icon: CheckCircle2, color: "#FFCC00" },
   { value: "gyartas_folyamatban", label: "Gyártás folyamatban", short: "Gyártás", icon: Factory, color: "#FF9500" },
   { value: "rakodasra_elojegyezve", label: "Rakodásra előjegyezve", short: "Rakodás", icon: Truck, color: "#FF9500" },
   { value: "felrakva_kesz", label: "Felrakva / Kész", short: "Kész", icon: PackageCheck, color: "#34C759" },
 ];
 
 export const NEXT_STATUS = {
-  terv_feldolgozas: "elfogadasra_var",
+  terv_feldolgozas: "vevo_visszaigazolta",
+  vevo_visszaigazolta: "elfogadasra_var",
   elfogadasra_var: "gyartas_folyamatban",
   gyartas_folyamatban: "rakodasra_elojegyezve",
   rakodasra_elojegyezve: "felrakva_kesz",

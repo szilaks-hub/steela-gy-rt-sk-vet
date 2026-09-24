@@ -4,6 +4,7 @@ import { TrendingUp, PackageCheck, Timer, Zap, Activity, Gauge } from "lucide-re
 
 const STAGE_ORDER = [
   "terv_feldolgozas",
+  "vevo_visszaigazolta",
   "elfogadasra_var",
   "gyartas_folyamatban",
   "rakodasra_elojegyezve",

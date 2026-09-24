@@ -351,8 +351,8 @@ export default function MunkalapDetail({ munkalap, onClose, onUpdated }) {
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: dl.color }} />
           <p className="text-[0.8125rem]" style={{ color: dl.color }}>
             {dl.diff < 0
-              ? `A terv feldolgozás határideje lejárt! (${m.felelos})`
-              : `${m.felelos}: a terv feldolgozást ${dl.label} múlva le kell adni.`}
+              ? `A gyártásból jelzés határideje lejárt! (${m.felelos})`
+              : `${m.felelos}: a gyártásból jelzést ${dl.label} múlva le kell adni.`}
           </p>
         </div>
       )}

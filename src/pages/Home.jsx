@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Factory, Archive } from "lucide-react";
 
 const NEXT = {
-  terv_feldolgozas: "elfogadasra_var",
+  terv_feldolgozas: "vevo_visszaigazolta",
+  vevo_visszaigazolta: "elfogadasra_var",
   elfogadasra_var: "gyartas_folyamatban",
   gyartas_folyamatban: "rakodasra_elojegyezve",
   rakodasra_elojegyezve: "felrakva_kesz",
