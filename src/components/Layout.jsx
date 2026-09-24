@@ -112,7 +112,12 @@ export default function Layout() {
         </motion.div>
 
         <motion.div {...fadeUp(0.2)} className="mt-auto pt-4 px-2">
-          <p className="text-[0.625rem] text-[#86868B] tracking-wide">Production made clear.</p>
+          <div className="flex flex-col items-center gap-1.5 pb-1">
+            <Logo variant="full" size={30} animated={false} />
+            <p className="text-[0.625rem] text-[#86868B] tracking-wide">Production made clear.</p>
+            <p className="text-[0.625rem] font-medium text-[#86868B]">v1.0.0</p>
+            <p className="text-[0.625rem] text-[#86868B]">made by Szilák Sándor</p>
+          </div>
         </motion.div>
       </aside>
 
