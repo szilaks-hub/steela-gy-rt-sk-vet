@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Upload, Loader2, X, FileText, User, Sparkles } from "lucide-react";
+import FelelosSelect from "@/components/FelelosSelect";
 
 const sanitizePrefix = (s) =>
   (s || "")
@@ -236,11 +237,10 @@ export default function MunkalapForm({ onCreated }) {
 
       <div className="space-y-1.5">
         <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Felelős / Terv feldolgozó</Label>
-        <Input
+        <FelelosSelect
           value={felelos}
-          onChange={(e) => setFelelos(e.target.value)}
-          placeholder="Ki végzi a terv feldolgozást"
-          className={inputClass}
+          onChange={setFelelos}
+          className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]"
         />
       </div>
 

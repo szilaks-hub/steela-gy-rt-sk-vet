@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Check } from "lucide-react";
+import FelelosSelect from "@/components/FelelosSelect";
 
 export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
   const isMobile = useIsMobile();
@@ -101,11 +102,10 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
       </div>
       <div className="space-y-1.5">
         <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Felelős / Terv feldolgozó</Label>
-        <Input
+        <FelelosSelect
           value={felelos}
-          onChange={(e) => setFelelos(e.target.value)}
-          placeholder="Ki végzi a terv feldolgozást"
-          className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus-visible:ring-[#FF9500]"
+          onChange={setFelelos}
+          className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]"
         />
       </div>
       <div className="space-y-1.5">
