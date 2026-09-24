@@ -41,10 +41,18 @@ export async function logAudit({ action, munkalap_id, munkalap_code, ...rest }) 
 }
 
 export const ACTION_LABELS = {
-  create: "Munkalap létrehozása",
+  create: "Munkakérés létrehozása",
   edit: "Adatok módosítása",
-  advance: "Fázis léptetése",
-  accept: "Elfogadás",
+  befogad: "Befogadás (feldolgozásra)",
+  feldolgozas_kesz: "Feldolgozás kész",
+  vevonek_kuldve: "Vevőnek küldve",
+  megrendel: "Megrendelve — gyártásra kiadás",
+  gyartas_indit: "Gyártás indítása",
+  gyartas_kesz: "Gyártás kész (rakodható)",
+  felrak: "Felrakva — lezárás",
+  megszakit: "Munka megszakítva",
+  surgo_keres: "Sürgősségi kérés (korábbi időpont)",
+  surgo_valasz: "Sürgősségi válasz",
   assign_worker: "Munkás hozzárendelése",
   unassign_worker: "Munkás eltávolítása",
   flag: "Kiemeltre jelölés",
@@ -58,10 +66,18 @@ export const ACTION_LABELS = {
 };
 
 export const ACTION_COLORS = {
-  create: "#34C759",
+  create: "#F5C84B",
   edit: "#5B9BD5",
-  advance: "#FF9500",
-  accept: "#34C759",
+  befogad: "#FF9500",
+  feldolgozas_kesz: "#5AC8FA",
+  vevonek_kuldve: "#AF52DE",
+  megrendel: "#FF6B35",
+  gyartas_indit: "#0A84FF",
+  gyartas_kesz: "#34C759",
+  felrak: "#8E8E93",
+  megszakit: "#FF6961",
+  surgo_keres: "#FFCC00",
+  surgo_valasz: "#FF9500",
   assign_worker: "#5B9BD5",
   unassign_worker: "#86868B",
   flag: "#FF3B30",

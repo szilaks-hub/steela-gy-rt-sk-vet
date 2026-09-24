@@ -8,11 +8,12 @@ export default function FelelosStats({ munkalapok }) {
     const map = {};
     (munkalapok || []).filter((m) => m.archived !== true).forEach((m) => {
       const key = (m.felelos && m.felelos.trim()) || "Nincs megadva";
-      if (!map[key]) map[key] = { felelos: key, jobs: 0, kg: 0, active: 0, done: 0, flagged: 0 };
+      if (!map[key]) map[key] = { felelos: key, jobs: 0, kg: 0, active: 0, done: 0, megszakitva: 0, flagged: 0 };
       const e = map[key];
       e.jobs++;
       e.kg += Number(m.quantity_kg) || 0;
-      if (m.status === "felrakva_kesz") e.done++;
+      if (m.status === "lezarva") e.done++;
+      else if (m.status === "megszakitva") e.megszakitva++;
       else e.active++;
       if (m.flagged) e.flagged++;
     });
@@ -35,40 +36,25 @@ export default function FelelosStats({ munkalapok }) {
           <p className="text-[0.75rem] text-[#86868B] mt-1">{Math.round(totalKg).toLocaleString("hu-HU")} kg összesen</p>
         </div>
       </div>
-
-      {data.length === 0 ? (
-        <p className="text-[0.8125rem] text-[#86868B] py-10 text-center">Nincs adat</p>
-      ) : (
+      {data.length === 0 ? <p className="text-[0.8125rem] text-[#86868B] py-10 text-center">Nincs adat</p> : (
         <div className="space-y-3.5">
           {data.map((d, i) => (
             <div key={d.felelos} className="flex items-center gap-3">
-              <span
-                className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[0.8125rem] font-semibold shrink-0"
-                style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-              >
-                {d.felelos.charAt(0).toUpperCase()}
-              </span>
+              <span className="w-9 h-9 rounded-full flex items-center justify-center text-white text-[0.8125rem] font-semibold shrink-0" style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>{d.felelos.charAt(0).toUpperCase()}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[0.875rem] font-medium text-[#1D1D1F] truncate">{d.felelos}</span>
                   <span className="text-[0.8125rem] font-semibold text-[#1D1D1F]">{Math.round(d.kg).toLocaleString("hu-HU")} kg</span>
                 </div>
                 <div className="mt-1.5 h-2 w-full rounded-full bg-[#F5F5F7] overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#FF9500] to-[#FFCC00] transition-all"
-                    style={{ width: `${(d.kg / maxKg) * 100}%` }}
-                  />
+                  <div className="h-full rounded-full bg-gradient-to-r from-[#FF9500] to-[#FFCC00] transition-all" style={{ width: `${(d.kg / maxKg) * 100}%` }} />
                 </div>
                 <div className="mt-1 flex items-center gap-3 text-[0.6875rem] text-[#86868B]">
                   <span>{d.jobs} munka</span>
                   <span className="text-[#FF9500]">{d.active} aktív</span>
-                  <span className="text-[#34C759]">{d.done} kész</span>
-                  {d.flagged > 0 && (
-                    <span className="text-red-500 inline-flex items-center gap-0.5">
-                      <Flag className="w-3 h-3" />
-                      {d.flagged}
-                    </span>
-                  )}
+                  <span className="text-[#34C759]">{d.done} lezárva</span>
+                  {d.megszakitva > 0 && <span className="text-[#FF6961]">{d.megszakitva} megszakítva</span>}
+                  {d.flagged > 0 && <span className="text-red-500 inline-flex items-center gap-0.5"><Flag className="w-3 h-3" />{d.flagged}</span>}
                 </div>
               </div>
             </div>

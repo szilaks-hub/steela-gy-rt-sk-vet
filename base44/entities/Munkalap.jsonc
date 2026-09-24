@@ -4,7 +4,7 @@
   "properties": {
     "code": {
       "type": "string",
-      "title": "Munkalap k\u00f3d"
+      "title": "Munkalap azonos\u00edt\u00f3 (ST-YYMMDD-NNN)"
     },
     "customer_name": {
       "type": "string",
@@ -16,7 +16,28 @@
     },
     "letrehozo_nev": {
       "type": "string",
-      "title": "L\u00e9trehoz\u00f3 (automatikus)"
+      "title": "L\u00e9trehoz\u00f3 (keresked\u0151, automatikus)"
+    },
+    "kereskedo": {
+      "type": "string",
+      "title": "Keresked\u0151"
+    },
+    "keres_tipus": {
+      "type": "string",
+      "enum": [
+        "halo_rajz",
+        "hajlitasi_terv",
+        "mennyiseg",
+        "gyarthatosag",
+        "egyengetes",
+        "bordazas",
+        "meretre_vagas",
+        "halo_hegesztes",
+        "arajanlat",
+        "egyeb"
+      ],
+      "title": "K\u00e9r\u00e9s t\u00edpusa",
+      "default": "egyeb"
     },
     "operation": {
       "type": "string",
@@ -27,39 +48,174 @@
         "meretre_vagas",
         "halo_hegesztes"
       ],
-      "title": "M\u0171velet",
+      "title": "Gy\u00e1rt\u00e1si m\u0171velet",
       "default": "egyengetes"
     },
     "quantity_kg": {
       "type": "number",
-      "title": "Mennyis\u00e9g (kg)",
+      "title": "Becs\u00fclt / gy\u00e1rtand\u00f3 mennyis\u00e9g (kg)",
       "default": 0
     },
     "status": {
       "type": "string",
       "enum": [
-        "terv_feldolgozas",
-        "vevo_visszaigazolta",
-        "elfogadasra_var",
-        "gyartas_folyamatban",
-        "rakodasra_elojegyezve",
-        "felrakva_kesz"
+        "munkakeres",
+        "feldolgozas_alatt",
+        "elkeszitve",
+        "vevoi_dontes",
+        "gyartasra_kiadva",
+        "gyartasban",
+        "rakodhato",
+        "lezarva",
+        "megszakitva"
       ],
       "title": "St\u00e1tusz",
-      "default": "terv_feldolgozas"
+      "default": "munkakeres"
     },
-    "accepted": {
-      "type": "boolean",
-      "title": "Elfogadva",
-      "default": false
-    },
-    "elfogadva_at": {
+    "kert_hatarido": {
       "type": "string",
-      "title": "Elfogad\u00e1s id\u0151pontja (ISO)"
+      "format": "date",
+      "title": "K\u00e9rt hat\u00e1rid\u0151"
+    },
+    "felelos": {
+      "type": "string",
+      "title": "Felel\u0151s / Feldolgoz\u00f3"
+    },
+    "befogado_nev": {
+      "type": "string",
+      "title": "Befogadta (gy\u00e1ri koll\u00e9ga)"
+    },
+    "befogadva_at": {
+      "type": "string",
+      "title": "Befogad\u00e1s id\u0151pontja (ISO)"
+    },
+    "feldolgozas_kesz_at": {
+      "type": "string",
+      "title": "Feldolgoz\u00e1s k\u00e9sz id\u0151pontja (ISO)"
+    },
+    "megrendelve_at": {
+      "type": "string",
+      "title": "Megrendelve id\u0151pontja (ISO)"
+    },
+    "gyartasra_kiadta": {
+      "type": "string",
+      "title": "Gy\u00e1rt\u00e1sra kiadta (keresked\u0151)"
+    },
+    "gyartasra_kiadva_at": {
+      "type": "string",
+      "title": "Gy\u00e1rt\u00e1sra kiad\u00e1s id\u0151pontja (ISO)"
+    },
+    "gyartas_kezdete": {
+      "type": "string",
+      "title": "Gy\u00e1rt\u00e1s kezdete (ISO)"
+    },
+    "gyartas_vege": {
+      "type": "string",
+      "title": "Gy\u00e1rt\u00e1s v\u00e9ge (ISO)"
+    },
+    "gyartas_felelos": {
+      "type": "string",
+      "title": "Gy\u00e1rt\u00e1s felel\u0151s"
+    },
+    "tervezett_befejezes": {
+      "type": "string",
+      "format": "date",
+      "title": "Tervezett befejez\u00e9s"
+    },
+    "varhato_rakodhato": {
+      "type": "string",
+      "format": "date",
+      "title": "V\u00e1rhat\u00f3 rakodhat\u00f3s\u00e1g"
+    },
+    "gyartasi_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "K\u00e9rt elk\u00e9sz\u00fcl\u00e9si d\u00e1tum"
+    },
+    "kiszallitasi_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "K\u00e9rt rakod\u00e1si d\u00e1tum"
+    },
+    "rakodhato_at": {
+      "type": "string",
+      "title": "Rakodhat\u00f3 id\u0151pontja (ISO)"
+    },
+    "rakodasi_hely": {
+      "type": "string",
+      "title": "Rakod\u00e1si hely"
+    },
+    "elkeszult_mennyiseg": {
+      "type": "number",
+      "title": "Elk\u00e9sz\u00fclt mennyis\u00e9g (kg)",
+      "default": 0
+    },
+    "rakodhato_mennyiseg": {
+      "type": "number",
+      "title": "Rakodhat\u00f3 mennyis\u00e9g (kg)",
+      "default": 0
+    },
+    "felrakva_at": {
+      "type": "string",
+      "title": "Felrakva id\u0151pontja (ISO)"
+    },
+    "rakodott_kg": {
+      "type": "number",
+      "title": "T\u00e9nyleges rakodott kg",
+      "default": 0
+    },
+    "rendszam": {
+      "type": "string",
+      "title": "Rendsz\u00e1m"
+    },
+    "fuvar_azonosito": {
+      "type": "string",
+      "title": "Fuvar / sz\u00e1ll\u00edt\u00e1s azonos\u00edt\u00f3"
+    },
+    "megszakitva_ok": {
+      "type": "string",
+      "title": "Megszak\u00edt\u00e1s oka"
+    },
+    "megszakitva_at": {
+      "type": "string",
+      "title": "Megszak\u00edt\u00e1s id\u0151pontja (ISO)"
+    },
+    "surgo_keres_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "S\u00fcrg\u0151ss\u00e9g: k\u00e9rt kor\u00e1bbi id\u0151pont"
+    },
+    "surgo_keres_indok": {
+      "type": "string",
+      "title": "S\u00fcrg\u0151ss\u00e9g indoka"
+    },
+    "surgo_allapot": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "elfogadva",
+        "reszben",
+        "nem_teljesitheto"
+      ],
+      "title": "S\u00fcrg\u0151ss\u00e9g \u00e1llapot"
+    },
+    "surgo_valasz_datum": {
+      "type": "string",
+      "format": "date",
+      "title": "S\u00fcrg\u0151ss\u00e9g: v\u00e1llalt id\u0151pont"
+    },
+    "surgo_valasz_mennyiseg": {
+      "type": "number",
+      "title": "S\u00fcrg\u0151ss\u00e9g: r\u00e9szbenes mennyis\u00e9g (kg)",
+      "default": 0
+    },
+    "surgo_valasz_note": {
+      "type": "string",
+      "title": "S\u00fcrg\u0151ss\u00e9g: v\u00e1lasz megjegyz\u00e9s"
     },
     "flagged": {
       "type": "boolean",
-      "title": "Kiemelt / Jel\u00f6lt",
+      "title": "Kiemelt",
       "default": false
     },
     "archived": {
@@ -83,7 +239,7 @@
     },
     "stage_history": {
       "type": "array",
-      "title": "Folyamat napl\u00f3 (f\u00e1zis v\u00e1lt\u00e1sok)",
+      "title": "Munkalap id\u0151vonal (esem\u00e9nyek)",
       "items": {
         "type": "object",
         "properties": {
@@ -98,6 +254,10 @@
           "note": {
             "type": "string",
             "title": "Megjegyz\u00e9s"
+          },
+          "actor": {
+            "type": "string",
+            "title": "V\u00e9grehajt\u00f3"
           }
         }
       }
@@ -109,42 +269,13 @@
     },
     "description": {
       "type": "string",
-      "title": "Le\u00edr\u00e1s"
-    },
-    "terv_hatarido": {
-      "type": "string",
-      "format": "date",
-      "title": "Terv feldolgoz\u00e1s hat\u00e1rideje (vev\u0151 k\u00e9r\u00e9s)"
-    },
-    "gyartasra_megy": {
-      "type": "boolean",
-      "title": "Gy\u00e1rt\u00e1sra megy",
-      "default": false
-    },
-    "phase_datum": {
-      "type": "string",
-      "format": "date",
-      "title": "Aj\u00e1nlati hat\u00e1rid\u0151"
-    },
-    "gyartasi_datum": {
-      "type": "string",
-      "format": "date",
-      "title": "Gy\u00e1rt\u00e1si nap"
-    },
-    "kiszallitasi_datum": {
-      "type": "string",
-      "format": "date",
-      "title": "Kisz\u00e1ll\u00edt\u00e1si d\u00e1tum"
-    },
-    "felelos": {
-      "type": "string",
-      "title": "Felel\u0151s / Terv feldolgoz\u00f3"
+      "title": "Le\u00edr\u00e1s / megjegyz\u00e9s"
     }
   },
   "required": [
     "code",
     "customer_name",
     "project_name",
-    "operation"
+    "keres_tipus"
   ]
 }

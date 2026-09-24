@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { OPERATIONS } from "@/lib/munkalapConfig";
+import { OPERATIONS, KERES_TIPUSOK } from "@/lib/munkalapConfig";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -19,7 +19,8 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
   const [operation, setOperation] = useState(m.operation || OPERATIONS[0].value);
   const [quantity, setQuantity] = useState(m.quantity_kg != null ? String(m.quantity_kg) : "");
   const [felelos, setFelelos] = useState(m.felelos || "");
-  const [tervHatarido, setTervHatarido] = useState(m.terv_hatarido || "");
+  const [keresTipus, setKeresTipus] = useState(m.keres_tipus || KERES_TIPUSOK[0].value);
+  const [kertHatarido, setKertHatarido] = useState(m.kert_hatarido || "");
   const [gyartasiDatum, setGyartasiDatum] = useState(m.gyartasi_datum || "");
   const [kiszallitasiDatum, setKiszallitasiDatum] = useState(m.kiszallitasi_datum || "");
   const [description, setDescription] = useState(m.description || "");
@@ -43,9 +44,10 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
       const updated = await base44.entities.Munkalap.update(m.id, {
         customer_name: customer.trim(),
         operation,
+        keres_tipus: keresTipus,
         quantity_kg: quantity ? Number(quantity) : 0,
         felelos: felelos.trim(),
-        terv_hatarido: tervHatarido || null,
+        kert_hatarido: kertHatarido || null,
         gyartasi_datum: gyartasiDatum || null,
         kiszallitasi_datum: kiszallitasiDatum || null,
         description: description.trim(),
@@ -111,19 +113,28 @@ export default function MunkalapEditForm({ munkalap, onSaved, onClose }) {
         />
       </div>
       <div className="space-y-1.5">
+        <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Kérés típusa</Label>
+        <Select value={keresTipus} onValueChange={setKeresTipus}>
+          <SelectTrigger className="h-11 rounded-xl bg-[#F5F5F7] border-transparent focus:ring-[#FF9500]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {KERES_TIPUSOK.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1.5">
         <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Dátumok</Label>
         <div className="space-y-2.5">
           <div>
-            <span className="text-[0.6875rem] text-[#86868B]">Terv feldolgozás határideje (vevő kérés)</span>
-            <Input type="date" value={tervHatarido} onChange={(e) => setTervHatarido(e.target.value)} className={dateInputClass} />
+            <span className="text-[0.6875rem] text-[#86868B]">Kért határidő</span>
+            <Input type="date" value={kertHatarido} onChange={(e) => setKertHatarido(e.target.value)} className={dateInputClass} />
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <span className="text-[0.6875rem] text-[#86868B]">Gyártási nap</span>
+              <span className="text-[0.6875rem] text-[#86868B]">Kért elkészülés</span>
               <Input type="date" value={gyartasiDatum} onChange={(e) => setGyartasiDatum(e.target.value)} className={dateInputClass} />
             </div>
             <div>
-              <span className="text-[0.6875rem] text-[#86868B]">Kiszállítás</span>
+              <span className="text-[0.6875rem] text-[#86868B]">Kért rakodás</span>
               <Input type="date" value={kiszallitasiDatum} onChange={(e) => setKiszallitasiDatum(e.target.value)} className={dateInputClass} />
             </div>
           </div>

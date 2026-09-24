@@ -1,4 +1,14 @@
-import { FileText, CheckCircle2, Factory, Truck, PackageCheck, BadgeCheck } from "lucide-react";
+import {
+  FileText,
+  Wrench,
+  CheckCircle2,
+  MessageSquare,
+  BadgeCheck,
+  Factory,
+  Truck,
+  PackageCheck,
+  Ban,
+} from "lucide-react";
 
 export const OPERATIONS = [
   { value: "egyengetes", label: "Egyengetés", color: "#FF9500" },
@@ -10,31 +20,64 @@ export const OPERATIONS = [
 
 export const OPERATION_COLORS = Object.fromEntries(OPERATIONS.map((o) => [o.value, o.color]));
 
+export const KERES_TIPUSOK = [
+  { value: "halo_rajz", label: "Hálórajz feldolgozása" },
+  { value: "hajlitasi_terv", label: "Hajlítási terv feldolgozása" },
+  { value: "mennyiseg", label: "Mennyiség meghatározása" },
+  { value: "gyarthatosag", label: "Gyárthatóság ellenőrzése" },
+  { value: "egyengetes", label: "Egyengetési igény" },
+  { value: "bordazas", label: "Bordázási igény" },
+  { value: "meretre_vagas", label: "Méretre vágás" },
+  { value: "halo_hegesztes", label: "Hálóhegesztés" },
+  { value: "arajanlat", label: "Árajánlat műszaki feldolgozás" },
+  { value: "egyeb", label: "Egyéb gyártási kérdés" },
+];
+
+export const MEGSZAKITAS_OKOK = [
+  { value: "vevo_lemondta", label: "Vevő lemondta" },
+  { value: "ajanlat_nem_elfogadva", label: "Ajánlatot nem fogadta el" },
+  { value: "ar_miatt", label: "Ár miatt elveszett" },
+  { value: "hatarido_miatt", label: "Határidő miatt elveszett" },
+  { value: "muszakilag_nem", label: "Műszakilag nem megvalósítható" },
+  { value: "duplikalt", label: "Duplikált kérés" },
+  { value: "projekt_elmaradt", label: "Projekt elmaradt" },
+  { value: "egyeb", label: "Egyéb" },
+];
+
 export const STAGES = [
-  { value: "terv_feldolgozas", label: "Gyártásból jelzésre vár", short: "Jelzésre vár", icon: FileText, color: "#86868B" },
-  { value: "vevo_visszaigazolta", label: "Vevő visszaigazolta", short: "Visszaigazolta", icon: BadgeCheck, color: "#5B9BD5" },
-  { value: "elfogadasra_var", label: "Függő munkák", short: "Függő", icon: CheckCircle2, color: "#FFCC00" },
-  { value: "gyartas_folyamatban", label: "Gyártás folyamatban", short: "Gyártás", icon: Factory, color: "#FF9500" },
-  { value: "rakodasra_elojegyezve", label: "Rakodásra előjegyezve", short: "Rakodás", icon: Truck, color: "#FF9500" },
-  { value: "felrakva_kesz", label: "Felrakva / Kész", short: "Kész", icon: PackageCheck, color: "#34C759" },
+  { value: "munkakeres", label: "Munkakérés", short: "Kérés", icon: FileText, color: "#F5C84B" },
+  { value: "feldolgozas_alatt", label: "Feldolgozás alatt", short: "Feldolgozás", icon: Wrench, color: "#FF9500" },
+  { value: "elkeszitve", label: "Elkészítve", short: "Elkészítve", icon: CheckCircle2, color: "#5AC8FA" },
+  { value: "vevoi_dontes", label: "Vevői döntés", short: "Vevőre vár", icon: MessageSquare, color: "#AF52DE" },
+  { value: "gyartasra_kiadva", label: "Gyártásra kiadva", short: "Kiadva", icon: BadgeCheck, color: "#FF6B35" },
+  { value: "gyartasban", label: "Gyártásban", short: "Gyártás", icon: Factory, color: "#0A84FF" },
+  { value: "rakodhato", label: "Rakodható", short: "Rakodható", icon: Truck, color: "#34C759" },
+  { value: "lezarva", label: "Lezárva", short: "Lezárva", icon: PackageCheck, color: "#8E8E93" },
+  { value: "megszakitva", label: "Megszakítva", short: "Megszakítva", icon: Ban, color: "#FF6961" },
 ];
 
 export const NEXT_STATUS = {
-  terv_feldolgozas: "vevo_visszaigazolta",
-  vevo_visszaigazolta: "elfogadasra_var",
-  elfogadasra_var: "gyartas_folyamatban",
-  gyartas_folyamatban: "rakodasra_elojegyezve",
-  rakodasra_elojegyezve: "felrakva_kesz",
-  felrakva_kesz: null,
+  munkakeres: "feldolgozas_alatt",
+  feldolgozas_alatt: "elkeszitve",
+  elkeszitve: "vevoi_dontes",
+  vevoi_dontes: "gyartasra_kiadva",
+  gyartasra_kiadva: "gyartasban",
+  gyartasban: "rakodhato",
+  rakodhato: "lezarva",
+  lezarva: null,
+  megszakitva: null,
 };
 
 export const operationLabel = (v) => OPERATIONS.find((o) => o.value === v)?.label || v;
 export const operationColor = (v) => OPERATION_COLORS[v] || "#86868B";
 export const stageMeta = (v) => STAGES.find((s) => s.value === v) || STAGES[0];
+export const keresTipusLabel = (v) => KERES_TIPUSOK.find((t) => t.value === v)?.label || v;
+export const megszakitasOkLabel = (v) => MEGSZAKITAS_OKOK.find((o) => o.value === v)?.label || v;
 
 export const progressFor = (status) => {
   const i = STAGES.findIndex((s) => s.value === status);
-  return Math.round(((i + 1) / STAGES.length) * 100);
+  if (i < 0) return 0;
+  return Math.round(((i + 1) / 8) * 100);
 };
 
 export const formatDate = (d) => {
@@ -64,14 +107,14 @@ export const stageEntryAt = (munkalap, stage) => {
   const history = Array.isArray(munkalap.stage_history) ? munkalap.stage_history : [];
   const h = history.find((e) => e.stage === stage);
   if (h) return h.at;
-  if (stage === "terv_feldolgozas") return munkalap.created_date;
+  if (stage === "munkakeres") return munkalap.created_date;
   return null;
 };
 
 export const elapsedMs = (munkalap) => {
   const created = munkalap.created_date ? new Date(munkalap.created_date).getTime() : null;
   if (created == null) return null;
-  const lastStage = STAGES[STAGES.length - 1].value;
+  const lastStage = "lezarva";
   const lastAt = stageEntryAt(munkalap, lastStage);
   const end = lastAt ? new Date(lastAt).getTime() : Date.now();
   return end - created;

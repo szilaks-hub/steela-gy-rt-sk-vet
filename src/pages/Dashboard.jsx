@@ -1,66 +1,41 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { OPERATIONS, STAGES, stageMeta } from "@/lib/munkalapConfig";
+import { OPERATIONS, STAGES, stageMeta, stageEntryAt, formatDateTime } from "@/lib/munkalapConfig";
 import {
-  ClipboardList,
-  Factory,
-  CheckCircle2,
-  PackageCheck,
-  Weight,
-  Timer,
-  Target,
-  TrendingUp,
-  Gauge,
-  AlertTriangle,
-  Loader2,
+  ClipboardList, Wrench, ShieldCheck, Factory, Truck, PackageCheck, Ban,
+  Weight, Timer, Target, TrendingUp, Zap, Gauge, AlertTriangle, Loader2, Clock, Percent, Hourglass,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  Cell,
-  Tooltip,
-  PieChart,
-  Pie,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, PieChart, Pie } from "recharts";
 import FelelosStats from "@/components/FelelosStats";
 import WorkerKPIs from "@/components/WorkerKPIs";
 import ActivityFeed from "@/components/ActivityFeed";
 
 const OP_COLORS = ["#FF9500", "#FFCC00", "#FF6B35", "#34C759", "#5B9BD5"];
 const MS_DAY = 86400000;
-
 const fmtKg = (n) => (n || 0).toLocaleString("hu-HU", { maximumFractionDigits: 0 });
-
 const fmtDur = (ms) => {
   if (ms == null || ms < 0 || !isFinite(ms)) return "—";
   const days = ms / MS_DAY;
   if (days >= 1) return `${days.toFixed(1).replace(".", ",")} nap`;
   const hours = ms / 3600000;
   if (hours >= 1) return `${Math.round(hours)} óra`;
-  const mins = Math.round(ms / 60000);
-  return `${mins} perc`;
-};
-
-const stageEntryAt = (m, stage) => {
-  const hist = Array.isArray(m.stage_history) ? m.stage_history : [];
-  const h = hist.find((e) => e.stage === stage);
-  if (h) return h.at;
-  if (stage === "terv_feldolgozas") return m.created_date;
-  return null;
+  return `${Math.round(ms / 60000)} perc`;
 };
 
 export default function Dashboard() {
   const [munkalapok, setMunkalapok] = useState([]);
+  const [audits, setAudits] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const list = await base44.entities.Munkalap.list("-created_date", 500);
+        const [list, auditList] = await Promise.all([
+          base44.entities.Munkalap.list("-created_date", 500),
+          base44.entities.AuditLog.list("-created_date", 500),
+        ]);
         setMunkalapok(list);
+        setAudits(auditList);
       } finally {
         setLoading(false);
       }
@@ -68,137 +43,121 @@ export default function Dashboard() {
   }, []);
 
   const k = useMemo(() => {
-    const active = munkalapok.filter((m) => m.archived !== true && m.status !== "felrakva_kesz");
-    const finished = munkalapok.filter((m) => m.status === "felrakva_kesz");
     const live = munkalapok.filter((m) => m.archived !== true);
+    const beérkezett = live.length;
+    const befogadva = live.filter((m) => m.befogadva_at);
+    const megrendelt = live.filter((m) => m.megrendelve_at);
+    const megszakított = live.filter((m) => m.status === "megszakitva");
+    const lezárt = live.filter((m) => m.status === "lezarva");
+    const gyartasbanVolt = live.filter((m) => m.gyartas_kezdete);
 
-    const totalKg = live.reduce((s, m) => s + (Number(m.quantity_kg) || 0), 0);
-    const doneKg = finished.reduce((s, m) => s + (Number(m.quantity_kg) || 0), 0);
+    // befogadási idő (munkakeres → befogadás)
+    const befogadasiIdok = befogadva.map((m) => {
+      const c = m.created_date ? new Date(m.created_date).getTime() : null;
+      const b = m.befogadva_at ? new Date(m.befogadva_at).getTime() : null;
+      return c && b ? b - c : null;
+    }).filter((t) => t != null && t >= 0);
+    const avgBefogadas = befogadasiIdok.length ? befogadasiIdok.reduce((a, b) => a + b, 0) / befogadasiIdok.length : null;
 
-    // átlag ciklusidő (csak befejezett)
-    const cycleTimes = finished
-      .map((m) => {
-        const created = m.created_date ? new Date(m.created_date).getTime() : null;
-        const doneAt = stageEntryAt(m, "felrakva_kesz");
-        if (!created || !doneAt) return null;
-        return new Date(doneAt).getTime() - created;
-      })
-      .filter((t) => t != null && t >= 0);
-    const avgCycleMs = cycleTimes.length ? cycleTimes.reduce((a, b) => a + b, 0) / cycleTimes.length : null;
+    // átlag feldolgozási idő (befogadás → feldolgozás kész)
+    const feldolgozasiIdok = live.map((m) => {
+      const b = m.befogadva_at ? new Date(m.befogadva_at).getTime() : null;
+      const f = m.feldolgozas_kesz_at ? new Date(m.feldolgozas_kesz_at).getTime() : null;
+      return b && f ? f - b : null;
+    }).filter((t) => t != null && t >= 0);
+    const avgFeldolgozas = feldolgozasiIdok.length ? feldolgozasiIdok.reduce((a, b) => a + b, 0) / feldolgozasiIdok.length : null;
 
-    // határidő-ponosság
-    const withDeadline = finished.filter((m) => m.kiszallitasi_datum || m.terv_hatarido);
-    const onTime = withDeadline.filter((m) => {
-      const dl = m.kiszallitasi_datum || m.terv_hatarido;
-      const doneAt = stageEntryAt(m, "felrakva_kesz");
-      if (!doneAt) return false;
-      const doneDay = new Date(doneAt);
-      doneDay.setHours(0, 0, 0, 0);
-      const parts = String(dl).split("-").map(Number);
-      if (parts.length !== 3) return false;
-      const dlDay = new Date(parts[0], parts[1] - 1, parts[2]);
-      dlDay.setHours(23, 59, 59, 999);
-      return doneDay <= dlDay;
+    // átlag gyártási idő (gyártás kezdete → gyártás vége)
+    const gyartasiIdok = live.map((m) => {
+      const s = m.gyartas_kezdete ? new Date(m.gyartas_kezdete).getTime() : null;
+      const e = m.gyartas_vege ? new Date(m.gyartas_vege).getTime() : null;
+      return s && e ? e - s : null;
+    }).filter((t) => t != null && t >= 0);
+    const avgGyartas = gyartasiIdok.length ? gyartasiIdok.reduce((a, b) => a + b, 0) / gyartasiIdok.length : null;
+
+    // arányok
+    const megrendeltArany = beérkezett ? Math.round((megrendelt.length / beérkezett) * 100) : 0;
+    const megszakítottArany = beérkezett ? Math.round((megszakított.length / beérkezett) * 100) : 0;
+    const megszakítottKg = megszakított.reduce((s, m) => s + (Number(m.quantity_kg) || 0), 0);
+
+    // előkészítésre fordított, de nem realizált idő (befogadva → megszakítva, csak megszakított)
+    const nemRealizaltIdo = megszakított.map((m) => {
+      const b = m.befogadva_at ? new Date(m.befogadva_at).getTime() : null;
+      const e = m.megszakitva_at ? new Date(m.megszakitva_at).getTime() : null;
+      return b && e ? e - b : null;
+    }).filter((t) => t != null && t >= 0).reduce((a, b) => a + b, 0);
+
+    // gyártásra kiadott kg
+    const gyartasraKiadottKg = megrendelt.reduce((s, m) => s + (Number(m.quantity_kg) || 0), 0);
+    // legyártott kg (rakodható + lezárt elkeszult_mennyiseg)
+    const legyartottKg = live.filter((m) => ["rakodhato", "lezarva"].includes(m.status)).reduce((s, m) => s + (Number(m.elkeszult_mennyiseg) || Number(m.quantity_kg) || 0), 0);
+
+    // határidőre elkészült (lezárt, kert_hatarido vs felrakva_at)
+    const hataridos = lezárt.filter((m) => m.kert_hatarido);
+    const hataridoreKesz = hataridos.filter((m) => {
+      const dl = m.kert_hatarido.split("-").map(Number);
+      const dlDay = new Date(dl[0], dl[1] - 1, dl[2]); dlDay.setHours(23, 59, 59, 999);
+      const done = m.felrakva_at ? new Date(m.felrakva_at).getTime() : null;
+      return done && done <= dlDay.getTime();
     }).length;
-    const onTimePct = withDeadline.length ? Math.round((onTime / withDeadline.length) * 100) : null;
+    const hataridoreArany = hataridos.length ? Math.round((hataridoreKesz / hataridos.length) * 100) : null;
 
-    // teljesítmény: kész kg / nap az első munkalap óta
-    const firstCreated = live.length
-      ? Math.min(...live.map((m) => (m.created_date ? new Date(m.created_date).getTime() : Date.now())))
-      : Date.now();
-    const spanDays = Math.max(1, (Date.now() - firstCreated) / MS_DAY);
-    const throughputKgDay = doneKg / spanDays;
+    // sürgősségi kérések (audit alapján)
+    const surgoKeresek = audits.filter((a) => a.action === "surgo_keres").length;
+    const surgoElfogadva = audits.filter((a) => a.action === "surgo_valasz").length;
+    const surgoElfogadvaArany = surgoKeresek ? Math.round((surgoElfogadva / surgoKeresek) * 100) : null;
 
-    // fázisonkénti átlagos idő + szűk keresztmetszet
-    const stageDurations = STAGES.map((s, i) => {
-      let total = 0;
-      let count = 0;
-      live.forEach((m) => {
-        const at = stageEntryAt(m, s.value);
-        if (!at) return;
-        const start = new Date(at).getTime();
-        const next = STAGES[i + 1];
-        const nextAt = next ? stageEntryAt(m, next.value) : null;
-        let end;
-        if (nextAt) end = new Date(nextAt).getTime();
-        else if (m.status === s.value) end = Date.now();
-        else return;
-        total += end - start;
-        count++;
-      });
-      return { stage: s, avgMs: count ? total / count : null, count };
-    });
-    const bottleneck = stageDurations
-      .filter((d) => d.avgMs != null)
-      .sort((a, b) => (b.avgMs || 0) - (a.avgMs || 0))[0];
+    // tervezett vs tényleges rakodási idő eltérés (lezárt, varhato_rakodhato vs felrakva_at)
+    const eltérések = lezárt.map((m) => {
+      if (!m.varhato_rakodhato || !m.felrakva_at) return null;
+      const t = m.varhato_rakodhato.split("-").map(Number);
+      const terv = new Date(t[0], t[1] - 1, t[2]).getTime();
+      const teny = new Date(m.felrakva_at).getTime();
+      return (teny - terv) / MS_DAY;
+    }).filter((d) => d != null);
+    const avgEltérés = eltérések.length ? eltérések.reduce((a, b) => a + b, 0) / eltérések.length : null;
 
     return {
-      total: live.length,
-      activeCount: active.length,
-      finishedCount: finished.length,
-      totalKg,
-      doneKg,
-      remainingKg: Math.max(0, totalKg - doneKg),
-      avgCycleMs,
-      onTimePct,
-      onTimeCount: onTime,
-      withDeadlineCount: withDeadline.length,
-      throughputKgDay,
-      stageDurations,
-      bottleneck,
+      beérkezett, befogadva: befogadva.length, megrendelt: megrendelt.length, megszakított: megszakított.length, lezárt: lezárt.length,
+      avgBefogadas, avgFeldolgozas, avgGyartas, megrendeltArany, megszakítottArany, megszakítottKg,
+      nemRealizaltIdo, gyartasraKiadottKg, legyartottKg, hataridoreArany, hataridoreKesz, hataridosHatarido: hataridos.length,
+      surgoKeresek, surgoElfogadvaArany, avgEltérés,
     };
-  }, [munkalapok]);
+  }, [munkalapok, audits]);
 
   const count = (fn) => munkalapok.filter((m) => m.archived !== true && fn(m)).length;
 
   const stats = [
-    { label: "Összes munkalap", value: k.total, Icon: ClipboardList, color: "#1D1D1F" },
-    { label: "Gyártásban / aktív", value: k.activeCount, Icon: Factory, color: "#FF9500" },
-    { label: "Függő munkák", value: count((m) => m.status === "elfogadasra_var" && !m.accepted), Icon: CheckCircle2, color: "#FFCC00" },
-    { label: "Kész", value: k.finishedCount, Icon: PackageCheck, color: "#34C759" },
+    { label: "Új kérés", value: count((m) => m.status === "munkakeres"), Icon: ClipboardList, color: "#F5C84B" },
+    { label: "Feldolgozás alatt", value: count((m) => m.status === "feldolgozas_alatt"), Icon: Wrench, color: "#FF9500" },
+    { label: "Vevőre vár", value: count((m) => ["elkeszitve", "vevoi_dontes"].includes(m.status)), Icon: ShieldCheck, color: "#AF52DE" },
+    { label: "Gyártásban", value: count((m) => ["gyartasra_kiadva", "gyartasban"].includes(m.status)), Icon: Factory, color: "#0A84FF" },
+    { label: "Rakodható", value: count((m) => m.status === "rakodhato"), Icon: Truck, color: "#34C759" },
+    { label: "Lezárva", value: count((m) => m.status === "lezarva"), Icon: PackageCheck, color: "#8E8E93" },
+    { label: "Megszakítva", value: count((m) => m.status === "megszakitva"), Icon: Ban, color: "#FF6961" },
   ];
 
   const kpiCards = [
-    {
-      label: "Összes kg",
-      value: `${fmtKg(k.totalKg)} kg`,
-      hint: `${fmtKg(k.doneKg)} kész · ${fmtKg(k.remainingKg)} maradt`,
-      Icon: Weight,
-      color: "#FF9500",
-    },
-    {
-      label: "Átlag ciklusidő",
-      value: fmtDur(k.avgCycleMs),
-      hint: "létrehozás → felrakva",
-      Icon: Timer,
-      color: "#5B9BD5",
-    },
-    {
-      label: "Határidő-ponosság",
-      value: k.onTimePct != null ? `${k.onTimePct}%` : "—",
-      hint: k.withDeadlineCount ? `${k.onTimeCount}/${k.withDeadlineCount} határidőre` : "nincs adat",
-      Icon: Target,
-      color: "#34C759",
-    },
-    {
-      label: "Teljesítmény",
-      value: `${fmtKg(k.throughputKgDay)} kg/nap`,
-      hint: "átlagos átfutás",
-      Icon: TrendingUp,
-      color: "#AF52DE",
-    },
+    { label: "Befogadási idő", value: fmtDur(k.avgBefogadas), hint: "kérés → befogadás", Icon: Clock, color: "#FF9500" },
+    { label: "Átlag feldolgozás", value: fmtDur(k.avgFeldolgozas), hint: "befogadás → elkészítve", Icon: Hourglass, color: "#5AC8FA" },
+    { label: "Átlag gyártási idő", value: fmtDur(k.avgGyartas), hint: "indítás → kész", Icon: Timer, color: "#0A84FF" },
+    { label: "Megrendelt arány", value: `${k.megrendeltArany}%`, hint: `${k.megrendelt}/${k.beérkezett} munka`, Icon: Percent, color: "#FF6B35" },
+    { label: "Megszakított arány", value: `${k.megszakítottArany}%`, hint: `${k.megszakított} munka`, Icon: Ban, color: "#FF6961" },
+    { label: "Megszakított kg", value: `${fmtKg(k.megszakítottKg)} kg`, hint: "elvesztett mennyiség", Icon: Weight, color: "#FF6961" },
+    { label: "Gyártásra kiadott", value: `${fmtKg(k.gyartasraKiadottKg)} kg`, hint: "megrendelt összesen", Icon: ShieldCheck, color: "#FF6B35" },
+    { label: "Legyártott", value: `${fmtKg(k.legyartottKg)} kg`, hint: "rakodható + lezárt", Icon: Factory, color: "#34C759" },
+    { label: "Határidőre kész", value: k.hataridoreArany != null ? `${k.hataridoreArany}%` : "—", hint: k.hataridosHatarido ? `${k.hataridoreKesz}/${k.hataridosHatarido}` : "nincs adat", Icon: Target, color: "#34C759" },
+    { label: "Sürgősségi kérések", value: k.surgoKeresek, hint: k.surgoElfogadvaArany != null ? `${k.surgoElfogadvaArany}% vállalt` : "—", Icon: Zap, color: "#FFCC00" },
+    { label: "Rakodási eltérés", value: k.avgEltérés != null ? `${k.avgEltérés > 0 ? "+" : ""}${k.avgEltérés.toFixed(1).replace(".", ",")} nap` : "—", hint: "terv vs tényleges", Icon: Gauge, color: "#5B9BD5" },
+    { label: "Nem realizált idő", value: fmtDur(k.nemRealizaltIdo), hint: "megszakított előkészítés", Icon: AlertTriangle, color: "#FF6961" },
   ];
 
-  const stageData = STAGES.map((s) => ({
-    name: s.short,
-    count: count((m) => m.status === s.value),
-    color: s.color,
+  const stageData = STAGES.filter((s) => s.value !== "megszakitva").map((s) => ({
+    name: s.short, count: count((m) => m.status === s.value), color: s.color,
   }));
 
   const opData = OPERATIONS.map((o, i) => ({
-    name: o.label,
-    value: count((m) => m.operation === o.value),
-    color: OP_COLORS[i],
+    name: o.label, value: count((m) => m.operation === o.value), color: OP_COLORS[i],
   })).filter((d) => d.value > 0);
 
   return (
@@ -210,92 +169,58 @@ export default function Dashboard() {
 
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
         {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-7 h-7 text-[#FF9500] animate-spin" />
-          </div>
+          <div className="flex items-center justify-center py-24"><Loader2 className="w-7 h-7 text-[#FF9500] animate-spin" /></div>
         ) : (
           <>
-            {/* Állapot KPI-k */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
               {stats.map((s) => (
-                <div key={s.label} className="bg-white rounded-2xl border border-[#E5E5EA] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                  <span
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: s.color + "14", color: s.color }}
-                  >
-                    <s.Icon className="w-5 h-5" />
-                  </span>
-                  <p className="mt-4 text-[1.625rem] font-semibold text-[#1D1D1F] leading-none">{s.value}</p>
-                  <p className="mt-1.5 text-[0.8125rem] text-[#86868B]">{s.label}</p>
+                <div key={s.label} className="bg-white rounded-2xl border border-[#E5E5EA] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                  <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.color + "14", color: s.color }}><s.Icon className="w-4.5 h-4.5" /></span>
+                  <p className="mt-3 text-[1.5rem] font-semibold text-[#1D1D1F] leading-none">{s.value}</p>
+                  <p className="mt-1.5 text-[0.75rem] text-[#86868B]">{s.label}</p>
                 </div>
               ))}
             </div>
 
-            {/* Teljesítmény KPI-k */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {kpiCards.map((c) => (
-                <div key={c.label} className="bg-white rounded-2xl border border-[#E5E5EA] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                  <span
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: c.color + "14", color: c.color }}
-                  >
-                    <c.Icon className="w-5 h-5" />
-                  </span>
-                  <p className="mt-4 text-[1.375rem] font-semibold text-[#1D1D1F] leading-none">{c.value}</p>
-                  <p className="mt-1.5 text-[0.8125rem] text-[#86868B]">{c.label}</p>
-                  <p className="text-[0.6875rem] text-[#86868B] mt-0.5 truncate">{c.hint}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Szűk keresztmetszet figyelmeztetés */}
-            {k.bottleneck && (
-              <div className="rounded-2xl border border-[#FF9500]/30 bg-[#FFF7ED] px-4 py-3 flex items-center gap-2.5">
-                <AlertTriangle className="w-4 h-4 text-[#FF9500] shrink-0" />
-                <p className="text-[0.8125rem] text-[#1D1D1F]">
-                  <span className="font-semibold">Szűk keresztmetszet:</span> a{" "}
-                  <span className="font-semibold">{k.bottleneck.stage.label}</span> fázisban átlagosan{" "}
-                  <span className="font-semibold">{fmtDur(k.bottleneck.avgMs)}</span> időt töltenek a munkák.
-                </p>
+            <div>
+              <h3 className="text-[0.9375rem] font-semibold text-[#1D1D1F] mb-3">Folyamat KPI-k</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+                {kpiCards.map((c) => (
+                  <div key={c.label} className="bg-white rounded-2xl border border-[#E5E5EA] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                    <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: c.color + "14", color: c.color }}><c.Icon className="w-4.5 h-4.5" /></span>
+                    <p className="mt-3 text-[1.25rem] font-semibold text-[#1D1D1F] leading-none">{c.value}</p>
+                    <p className="mt-1.5 text-[0.75rem] text-[#86868B]">{c.label}</p>
+                    <p className="text-[0.6875rem] text-[#86868B] mt-0.5 truncate">{c.hint}</p>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
 
-            {/* Diagramok */}
             <div className="grid lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E5E5EA] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                <h3 className="text-[0.9375rem] font-semibold text-[#1D1D1F] mb-4">Munkalapok fázisonként</h3>
+                <h3 className="text-[0.9375rem] font-semibold text-[#1D1D1F] mb-4">Munkák fázisonként</h3>
                 <div style={{ height: 260 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stageData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                      <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#86868B" }} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#86868B" }} axisLine={false} tickLine={false} />
                       <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "#86868B" }} axisLine={false} tickLine={false} />
-                      <Tooltip
-                        cursor={{ fill: "#F5F5F7" }}
-                        contentStyle={{ borderRadius: 12, border: "1px solid #E5E5EA", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", fontSize: 13 }}
-                      />
-                      <Bar dataKey="count" radius={[8, 8, 8, 8]} maxBarSize={64}>
-                        {stageData.map((d, i) => (
-                          <Cell key={i} fill={d.color} />
-                        ))}
+                      <Tooltip cursor={{ fill: "#F5F5F7" }} contentStyle={{ borderRadius: 12, border: "1px solid #E5E5EA", fontSize: 13 }} />
+                      <Bar dataKey="count" radius={[8, 8, 8, 8]} maxBarSize={56}>
+                        {stageData.map((d, i) => <Cell key={i} fill={d.color} />)}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
-
               <div className="bg-white rounded-2xl border border-[#E5E5EA] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                 <h3 className="text-[0.9375rem] font-semibold text-[#1D1D1F] mb-4">Műveletek megoszlása</h3>
-                {opData.length === 0 ? (
-                  <p className="text-[0.8125rem] text-[#86868B] py-16 text-center">Nincs adat</p>
-                ) : (
+                {opData.length === 0 ? <p className="text-[0.8125rem] text-[#86868B] py-16 text-center">Nincs adat</p> : (
                   <>
                     <div style={{ height: 200 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie data={opData} dataKey="value" nameKey="name" innerRadius={52} outerRadius={80} paddingAngle={2} stroke="none">
-                            {opData.map((d, i) => (
-                              <Cell key={i} fill={d.color} />
-                            ))}
+                            {opData.map((d, i) => <Cell key={i} fill={d.color} />)}
                           </Pie>
                           <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E5E5EA", fontSize: 13 }} />
                         </PieChart>
@@ -315,49 +240,11 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Fázisidő / szűk keresztmetszet részletek */}
-            <div className="bg-white rounded-2xl border border-[#E5E5EA] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-              <h3 className="text-[0.9375rem] font-semibold text-[#1D1D1F] mb-1 inline-flex items-center gap-1.5">
-                <Gauge className="w-4 h-4 text-[#FF9500]" /> Fázisonkénti átlagos idő
-              </h3>
-              <p className="text-[0.75rem] text-[#86868B] mb-4">Mennyi időt töltenek a munkák egy-egy fázisban</p>
-              <div className="space-y-2.5">
-                {k.stageDurations.map((d) => {
-                  const sm = stageMeta(d.stage.value);
-                  const maxMs = Math.max(1, ...k.stageDurations.map((x) => x.avgMs || 0));
-                  const w = d.avgMs ? Math.max(3, (d.avgMs / maxMs) * 100) : 0;
-                  const isBottleneck = k.bottleneck && d.stage.value === k.bottleneck.stage.value;
-                  return (
-                    <div key={d.stage.value} className="flex items-center gap-3">
-                      <span
-                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: sm.color + "1A", color: sm.color }}
-                      >
-                        <sm.icon className="w-3.5 h-3.5" />
-                      </span>
-                      <span className="text-[0.8125rem] text-[#1D1D1F] w-32 shrink-0 truncate">{sm.label}</span>
-                      <div className="flex-1 h-2 rounded-full bg-[#F2F2F5] overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${w}%`, backgroundColor: isBottleneck ? "#FF3B30" : sm.color }}
-                        />
-                      </div>
-                      <span className="text-[0.8125rem] font-semibold text-[#1D1D1F] w-20 text-right shrink-0">
-                        {fmtDur(d.avgMs)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Felelősök + Munkások */}
             <div className="grid lg:grid-cols-2 gap-4">
               <FelelosStats munkalapok={munkalapok} />
               <WorkerKPIs munkalapok={munkalapok} />
             </div>
 
-            {/* Aktivitás-folyam (e-mail helyett) */}
             <ActivityFeed limit={60} />
           </>
         )}
