@@ -136,6 +136,16 @@
 @media print {
   .no-print { display: none !important; }
   body { background: #fff !important; background-image: none !important; }
+  body * { visibility: hidden !important; }
+  .print-area, .print-area * { visibility: visible !important; }
+  .print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 24px !important;
+  }
   aside { display: none !important; }
   main {
     position: static !important;

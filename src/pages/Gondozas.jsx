@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { OPERATIONS, STAGES, stageMeta } from "@/lib/munkalapConfig";
 import MunkalapDetail from "@/components/MunkalapDetail";
-import { Search, Loader2, Building2, X, Layers } from "lucide-react";
+import PartnerReport from "@/components/PartnerReport";
+import { Search, Loader2, Building2, X, Layers, Printer } from "lucide-react";
 
 export default function Gondozas() {
   const [partners, setPartners] = useState([]);
@@ -12,6 +13,7 @@ export default function Gondozas() {
   const [selectedIds, setSelectedIds] = useState(null);
   const [activeStage, setActiveStage] = useState(null);
   const [selectedMunkalap, setSelectedMunkalap] = useState(null);
+  const [reportRow, setReportRow] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -218,11 +220,18 @@ export default function Gondozas() {
                         <td className="sticky left-0 z-10 bg-white px-4 py-3 group">
                           <div className="flex items-start gap-2">
                             <span className="w-8 h-8 rounded-lg bg-[#FF9500]/12 text-[#FF9500] flex items-center justify-center shrink-0 mt-0.5"><Building2 className="w-4 h-4" /></span>
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="text-[0.8125rem] font-semibold text-[#1D1D1F] truncate">{r.name}</p>
                               <p className="text-[0.6875rem] text-[#86868B] mt-0.5">{r.munkak.length} munka · {openCount} nyitott</p>
                               <p className="text-[0.6875rem] font-medium text-[#FF9500] mt-0.5">{rowKg.toLocaleString("hu-HU")} kg</p>
                             </div>
+                            <button
+                              onClick={() => setReportRow(r)}
+                              title="PDF / Nyomtatás ehhez a partnerhez"
+                              className="no-print shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-lg bg-[#F5F5F7] text-[#86868B] hover:bg-[#FF9500] hover:text-white transition-colors mt-0.5"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                         {OPERATIONS.map((o) => {
@@ -296,6 +305,10 @@ export default function Gondozas() {
           onClose={() => setSelectedMunkalap(null)}
           onUpdated={(m) => { if (!m) setSelectedMunkalap(null); load(); }}
         />
+      )}
+
+      {reportRow && (
+        <PartnerReport row={reportRow} onClose={() => setReportRow(null)} />
       )}
     </div>
   );
