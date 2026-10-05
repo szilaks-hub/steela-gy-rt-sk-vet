@@ -15,6 +15,7 @@ import Munkasok from '@/pages/Munkasok';
 import Beosztasok from '@/pages/Beosztasok';
 import KgOsszesito from '@/pages/KgOsszesito';
 import Partnerek from '@/pages/Partnerek';
+import Gondozas from '@/pages/Gondozas';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/kg-osszesito" element={<KgOsszesito />} />
           <Route path="/partnerek" element={<Partnerek />} />
+          <Route path="/gondozas" element={<Gondozas />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

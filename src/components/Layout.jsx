@@ -33,6 +33,9 @@ export default function Layout() {
   const [munkatarsOpen, setMunkatarsOpen] = useState(
     location.pathname === "/munkasok" || location.pathname === "/beosztasok"
   );
+  const [partnerekOpen, setPartnerekOpen] = useState(
+    location.pathname === "/partnerek" || location.pathname === "/gondozas"
+  );
 
   return (
     <div className="flex h-screen w-full overflow-hidden p-3 gap-3">
@@ -55,9 +58,37 @@ export default function Layout() {
           <NavLink to="/kg-osszesito" className={navClass}>
             <Scale className="w-4 h-4 shrink-0" /> Kg összesítő
           </NavLink>
-          <NavLink to="/partnerek" className={navClass}>
-            <Building2 className="w-4 h-4 shrink-0" /> Partnerek
-          </NavLink>
+          <div className="flex flex-col">
+            <button
+              onClick={() => setPartnerekOpen((v) => !v)}
+              className="flex items-center gap-2.5 h-9 px-3 rounded-xl text-[0.8125rem] font-medium text-[#1D1D1F] hover:bg-white/50 transition-colors"
+            >
+              <Building2 className="w-4 h-4 shrink-0" /> Partnerek
+              <ChevronDown
+                className={`w-3.5 h-3.5 ml-auto text-[#86868B] transition-transform duration-300 ${partnerekOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            <AnimatePresence initial={false}>
+              {partnerekOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-white/40 pl-2">
+                    <NavLink to="/partnerek" className={subClass}>
+                      Partnerek
+                    </NavLink>
+                    <NavLink to="/gondozas" className={subClass}>
+                      Gondozás
+                    </NavLink>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <div className="flex flex-col">
             <button
               onClick={() => setMunkatarsOpen((v) => !v)}
