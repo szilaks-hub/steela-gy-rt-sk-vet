@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Upload, Loader2, X, FileText, User, AlertTriangle } from "lucide-react";
 import FelelosSelect from "@/components/FelelosSelect";
+import PartnerSelect from "@/components/PartnerSelect";
 import { logAudit } from "@/lib/auditLog";
 
 const genCode = async () => {
@@ -168,7 +169,8 @@ export default function MunkalapForm({ onCreated }) {
 
       <div className="space-y-1.5">
         <Label className="text-[0.8125rem] text-[#1D1D1F] font-medium">Vevő megnevezése *</Label>
-        <Input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Pl. EVE Debrecen" className={inputClass} />
+        <PartnerSelect value={customer} onChange={setCustomer} placeholder="Pl. EVE Debrecen" className={inputClass} />
+        <p className="text-[0.6875rem] text-[#86868B]">A partnerek közül választhatsz, vagy új nevet is beírhatsz.</p>
       </div>
 
       <div className="space-y-1.5">

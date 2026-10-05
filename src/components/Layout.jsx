@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, BarChart3, Calendar, Users, ChevronDown, Scale } from "lucide-react";
+import { LayoutDashboard, BarChart3, Calendar, Users, ChevronDown, Scale, Building2 } from "lucide-react";
 import { OPERATIONS } from "@/lib/munkalapConfig";
 import Logo from "@/components/Logo";
 
@@ -54,6 +54,9 @@ export default function Layout() {
           </NavLink>
           <NavLink to="/kg-osszesito" className={navClass}>
             <Scale className="w-4 h-4 shrink-0" /> Kg összesítő
+          </NavLink>
+          <NavLink to="/partnerek" className={navClass}>
+            <Building2 className="w-4 h-4 shrink-0" /> Partnerek
           </NavLink>
           <div className="flex flex-col">
             <button

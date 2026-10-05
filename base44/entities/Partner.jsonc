@@ -1,0 +1,51 @@
+{
+  "name": "Partner",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "C\u00e9gn\u00e9v"
+    },
+    "utca": {
+      "type": "string",
+      "title": "C\u00edm (utca, h\u00e1zsz\u00e1m, v\u00e1ros)"
+    },
+    "adoszam": {
+      "type": "string",
+      "title": "Ad\u00f3sz\u00e1m"
+    },
+    "kontaktok": {
+      "type": "array",
+      "title": "Kontaktok",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nev": {
+            "type": "string",
+            "title": "N\u00e9v"
+          },
+          "beosztas": {
+            "type": "string",
+            "title": "Beoszt\u00e1s / szerepk\u00f6r"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "E-mail"
+          },
+          "telefon": {
+            "type": "string",
+            "title": "Telefon"
+          }
+        }
+      }
+    },
+    "megjegyzes": {
+      "type": "string",
+      "title": "Megjegyz\u00e9s"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
